@@ -39,5 +39,6 @@ e <- meta.DSL(n.trt, n.ctrl, inf.trt, inf.ctrl, data=catheter,
 ## Truly awful colour scheme to illustrate flexibility
 plot(e, colors=meta.colors(summary="green",lines=c("purple","skyblue"),
        box="red",zero="yellow",text=palette()))
+
 }
 \keyword{hplot}

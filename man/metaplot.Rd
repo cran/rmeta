@@ -13,8 +13,8 @@ metaplot(mn, se, nn=NULL, labels=NULL, conf.level=0.95,
          xlab="Odds ratio", ylab="Study Reference",xlim=NULL,
          summn=NULL, sumse=NULL, sumnn=NULL, summlabel="Summary",
          logeffect=FALSE, lwd=2, boxsize=1,
-         zero=if (logeffect) 1 else 0,
-         colors=meta.colors(), ...)
+         zero=if (logeffect) 1 else 0, colors=meta.colors(),
+         xaxt="s", logticks=TRUE,  ...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -35,6 +35,9 @@ metaplot(mn, se, nn=NULL, labels=NULL, conf.level=0.95,
   \item{lwd}{line width}
   \item{boxsize}{Scale factor for box size}
   \item{zero}{"Null" effect value}
+  \item{xaxt}{use \code{"n"} for no x-axis (to add a customised one)}
+  \item{logticks}{if \code{TRUE} and \code{logscale}, have tick values
+    approximately equally spaced on a log scale}.
   \item{colors}{see \code{\link{meta.colors}}}
   \item{\dots}{Other graphical parameters }
 }
@@ -56,6 +59,9 @@ a <- meta.MH(n.trt, n.ctrl, col.trt, col.ctrl, data=catheter,
 metaplot(a$logOR, a$selogOR, nn=a$selogOR^-2, a$names,
          summn=a$logMH, sumse=a$selogMH, sumnn=a$selogMH^-2,
          logeffect=TRUE)
+metaplot(a$logOR, a$selogOR, nn=a$selogOR^-2, a$names,
+         summn=a$logMH, sumse=a$selogMH, sumnn=a$selogMH^-2,
+         logeffect=TRUE,logticks=FALSE)
 ## angry fruit salad
 metaplot(a$logOR, a$selogOR, nn=a$selogOR^-2, a$names,
          summn=a$logMH, sumse=a$selogMH, sumnn=a$selogMH^-2,
