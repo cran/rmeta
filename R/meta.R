@@ -41,7 +41,7 @@ meta.MH <- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
     		  logMH = logMH, selogMH = sqrt( varMH ), 
     		  MHtest = c( MHchisq, 1 - pchisq( MHchisq, 1 ) ), 
     		  het = c( heterog, df, 1 - pchisq( heterog, df ) ),
-    		  call = match.call(), names = mf$names,
+    		  call = match.call(), names = as.character(mf$names),
     		  conf.level = conf.level )
     class( rval ) <- "meta.MH"
     rval
@@ -112,22 +112,29 @@ print.summary.meta.MH <- function( obj ) {
        )
 }
 
+meta.colors<-function(all.elements,box="black",lines="gray",summary="black",zero="lightgray",mirror="lightblue",text="black"){
+    if (!missing(all.elements)){
+        if (is.null(all.elements))
+            all.elements<-par("fg")
+        list(box=all.elements,lines=all.elements,summary=all.elements,zero=all.elements,mirror=all.elements,text=all.elements)
+    }
+    else
+        list(box=box,lines=lines,summary=summary,zero=zero,mirror=mirror,text=text)    
+}
+
+
 # Plot the Odds Ratio of meta.MH
-plot.meta.MH <- function( obj, summary = T, summlabel = "Summary", conf.level=NULL,colors=list(box="black",lines="gray",summary="black",zero="lightgray"),... ){
+plot.meta.MH <- function( obj, summary = TRUE, summlabel = "Summary", conf.level=NULL,colors=meta.colors(),... ){
     if (is.null(conf.level))
         conf.level <- obj$conf.level
     if (conf.level>1 & conf.level<100)
         conf.level<-conf.level/100
-    if (is.null(colors))
-        colors<-par("fg")
-    if (!is.list(colors))
-        colors<-list(box=colors,lines=colors,summary=colors,zero=colors)
-
+ 
     if ( summary )
         metaplot( obj$logOR, obj$selogOR, labels=obj$names,
         	  summn = obj$logMH, sumse = obj$selogMH, 
         	  conf.level = conf.level, sumnn = obj$selogMH ^ ( -2 ),
-        	  summlabel = summlabel, logeffect = T,colors=colors,... )
+        	  summlabel = summlabel, logeffect = TRUE,colors=colors,... )
     else 
        metaplot( obj$logOR, obj$selogOR, labels=obj$names, logeffect = T,colors=colors,... )
  }
@@ -170,7 +177,7 @@ meta.DSL <- function( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
     		   	    1 - pchisq( summary.test ^ 2, 1 ) ), 
     		  het = c( heterog, df, 1 - pchisq( heterog, df ) ),
                   call = match.call(),
-                  names = mf$names, conf.level = conf.level,
+                  names = as.character(mf$names), conf.level = conf.level,
                   omitted = !ok, tau2=tau2 )
     class( rval ) <- "meta.DSL"
     rval
@@ -237,43 +244,205 @@ print.summary.meta.DSL <- function( obj ) {
 }
 
 # Plot the Odds Ratio of meta.DSL
-plot.meta.DSL <- function( obj,summary=T,summlabel="Summary",conf.level=NULL,colors=list(box="black",lines="gray",summary="black",zero="lightgray"),... ){
+plot.meta.DSL <- function( obj,summary=TRUE,summlabel="Summary",conf.level=NULL,colors=meta.colors(),... ){
     if (is.null(conf.level))
         conf.level <- obj$conf.level
     if (conf.level>1 & conf.level<100)
         conf.level<-conf.level/100
-    if (is.null(colors))
-        colors<-par("fg")
-    if (!is.list(colors))
-        colors<-list(box=colors,lines=colors,summary=colors,zero=colors)
     if ( summary )
         metaplot( obj$logOR, obj$selogOR, conf.level = conf.level,
                  labels = obj$names, summn = obj$logDSL,
             	  sumse = obj$selogDSL, sumnn = obj$selogDSL^( -2 ),
-            	  summlabel = summlabel, logeffect = T,colors=colors,... )
+            	  summlabel = summlabel, logeffect = TRUE,colors=colors,... )
     else 
         metaplot( obj$logOR, obj$selogOR, labels = obj$names,
-        	  logeffect = T,colors=colors,... )
+        	  logeffect = T,colors=colors,conf.level=conf.level,... )
  }
  
- 
+
+meta.summaries<-function(d,se,method=c("fixed","random"),
+			weights=NULL,logscale=FALSE,names=NULL,data=NULL,
+			conf.level=.95,subset=NULL,na.action=na.fail)
+{
+      if (conf.level>1 & conf.level<100)
+        conf.level<-conf.level/100
+    if ( is.null( data ) ) 
+        data <- sys.frame( sys.parent() )
+    mf <- match.call()
+    mf$data <- NULL 
+    mf$method<-NULL  
+    mf$logscale<-NULL
+    mf$subset <- NULL
+    mf[[1]] <- as.name( "data.frame" )
+    mf <- eval( mf,data )
+    if ( !is.null( subset ) ) 
+        mf <- mf[subset,]
+    mf <- na.action( mf )
+  
+    if (is.null(mf$names)){
+	if (is.null(mf$d))
+	   mf$names<-seq(along=mf$d)
+	else
+	  mf$names<-names(mf$d)
+    }
+   mf$names<-as.character(mf$names)
+   method<-match.arg(method)
+   vars<-mf$se^2
+   tau2<-max(0,var(mf$d)-sum(vars)/NROW(mf))
+   if(is.null(mf$weights)){
+	if (method=="fixed"){
+   		wt<-1/vars
+	} else {
+		wt<-1/(vars+tau2)
+	}
+   } else
+	wt<-mf$weights
+
+  summ<-sum(wt*mf$d)/sum(wt)
+  if (method=="fixed")
+	varsum<-sum(wt*wt*vars)/(sum(wt)^2)
+  else
+	varsum<-sum(wt*wt*(vars+tau2))/(sum(wt)^2)
+  
+  summtest<-summ/sqrt(varsum)
+  heterog<-sum(((mf$d-summ)^2)/vars)
+  df<-length(vars)-1
+  rval<-list(effects=mf$d, stderrs=mf$se, summary=summ,se.summary=sqrt(varsum),
+	     test=c(summtest,1-pchisq(summtest^2,1)),
+	     het=c(heterog,df,1-pchisq(heterog,df)),
+	     call=match.call(), names=mf$names,tau2=tau2,
+	     variance.method=method, weights=wt, 
+	     weight.method=if(is.null(mf$weights)) method else "user",
+	     conf.level=conf.level,logscale=logscale)
+  class(rval)<-"meta.summaries"
+  rval
+}
+ summary.meta.summaries <- function( obj ,conf.level=NULL) {
+    if (is.null(conf.level))
+        conf.level <- obj$conf.level
+    if (conf.level>1 & conf.level<100)
+        conf.level<-conf.level/100
+    ci.value <- -qnorm( ( 1 - conf.level ) / 2 )
+    m <- outer( obj$stderrs, c( 0, -ci.value, ci.value ), "*" ) +
+              cbind( obj$effects, obj$effects, obj$effects )
+    label<-"Effect"
+    if (obj$logscale){
+        m<-exp(m)
+        label<-"exp(Effect)"
+    }
+    wt<-obj$weights
+    m<-cbind(m, round(wt*length(wt)/sum(wt),1))
+    dimnames( m ) <- list( as.character( obj$names ),
+                          c( label, "(lower ", paste(100*conf.level,"% upper)",sep=""),"weights")  )
+    summci<-obj$summary + c( -ci.value, 0, ci.value ) *obj$se.summary
+    if (obj$logscale) summci<-exp(summci)
+    rval <- list( studies = m, call = obj$call, 
+    		  summci = summci,
+    		  het = obj$het,tau2=obj$tau2,
+                  conf.level=conf.level,logscale=obj$logscale,
+                 weight.method=obj$weight.method,
+                 variance.method=obj$variance.method
+    	        )
+    class( rval ) <- "summary.meta.summaries"
+    rval
+}
+
+# Print out the summarised meta.summaries function.
+print.summary.meta.summaries <- function( obj ) {
+    if (obj$weight.method=="user")
+        cat(paste("Weighted meta-analysis with ",obj$variance.method,"-effects standard errors\n",sep=""))
+    else
+        cat(paste(switch(obj$variance.method,fixed="Fixed",random="Random"),"-effects meta-analysis\n",sep=""))
+
+    cat( "Call: " )
+    print( obj$call )
+    cat( "----------------------------------------------------\n" )
+    print( round( obj$studies,2 ) )
+    cat( "----------------------------------------------------\n" )
+    conf.level <- obj$conf.level
+    if (obj$logscale)
+        cat("Summary exp(effect): ")
+    else
+        cat("Summary effect: ")
+    cat( paste(  round( obj$summci[2], 2 ), " ",
+    	        conf.level*100, "% CI ( ", round( obj$summci[1],2 ), ",", 
+    	        round( obj$summci[3],2 ), " )\n", sep="" 
+    	      ) 
+       )
+    if (obj$variance.method=="fixed")
+        cat( paste( "Test for heterogeneity: X^2( ",obj$het[2]," ) = ",
+                   round( obj$het[1],2 ), " ( p-value ",
+                   round( obj$het[3],4 ), " )\n", sep = "" 
+                   ) 
+            )
+    else
+        cat("Estimated heterogeneity variance:",signif(obj$tau2,2)," p=",round(obj$het[3],3),"\n")
+}
+
+print.meta.summaries<-function(obj){
+   conf.level<-obj$conf.level
+   ci.value<- -qnorm((1-conf.level)/2)
+   if (obj$variance.method=="fixed")
+	cat("Fixed-effects meta-analysis")
+   else	
+	cat("Random-effects meta-analysis")
+   if(obj$weight.method!="user")
+	cat("\n")
+   else
+	cat(" with user-supplied weights\n")
+   cat("Call: ")
+   print(obj$call)
+   ci<-obj$summary+c(-ci.value,0,ci.value)*obj$se.summary
+   cat(paste("Summary effect=",signif(ci[2],3), "   ",
+	conf.level*100,"% CI (",signif(ci[1],3),", ",signif(ci[3],3),
+	")\n",sep=""))
+   cat("Estimated heterogeneity variance:",signif(obj$tau2,2)," p=",round(obj$het[3],3),"\n")
+}
+
+plot.meta.summaries<-function(obj,summary=TRUE,summlabel="Summary",
+	conf.level=NULL,colors=meta.colors(),xlab=NULL,logscale=NULL,... )
+{
+   if (is.null(conf.level))
+        conf.level <- obj$conf.level
+   if (conf.level>1 & conf.level<100)
+        conf.level<-conf.level/100
+   if(is.null(logscale)) logscale<-obj$logscale
+   if (is.null(xlab)){
+       if (logscale) xlab<-"exp(Effect)" else xlab<-"Effect"
+   }
+   if ( summary )
+        metaplot( obj$effects, obj$stderrs, conf.level = conf.level,
+                 labels = obj$names, summn = obj$summary,
+            	  sumse = obj$se.summary, sumnn = sum(obj$weights),
+            	  summlabel = summlabel, logeffect = logscale,
+		colors=colors,nn=obj$weights,xlab,... )
+    else 
+        metaplot( obj$effects, obj$stderrs, labels = obj$names,
+        	  logeffect = logscale,colors=colors,
+		nn=sum(obj$weights),conf.level=conf.level,xlab,... )
+
+}
+
+
+
+
 metaplot <- function( mn, se, nn=NULL, labels=NULL, conf.level = .95,
 		      xlab = "Odds ratio", ylab = "Study Reference",
-		      boxwidth = NULL, xlim = NULL, summn = NULL,
+		       xlim = NULL, summn = NULL,
 		      sumse = NULL, sumnn = NULL, 
-		      summlabel = "Summary", logeffect = F,
+		      summlabel = "Summary", logeffect = FALSE,
 		      lwd = 2, boxsize = 1, 
 		      zero = if ( logeffect ) 
 		                 1 
 		             else 
 		                 0,
-                      colors=NULL,
+                      colors=meta.colors(),
 		      ... ) {
     ci.value <- -qnorm( ( 1 - conf.level ) / 2 )
     ok <- is.finite( mn + se )
     if ( is.null( xlim ) ) 
-        xlim <- c( min( mn[ok] - ci.value * se[ok], na.rm = T ),
-      		     max( mn[ok] + ci.value * se[ok], na.rm = T ) )
+        xlim <- c( min( mn[ok] - ci.value * se[ok], na.rm = TRUE ),
+      		     max( mn[ok] + ci.value * se[ok], na.rm = TRUE ) )
     ##par( pty="s" )
     n <- length( mn )
     if ( logeffect ) {
@@ -296,7 +465,11 @@ metaplot <- function( mn, se, nn=NULL, labels=NULL, conf.level = .95,
           type = "n", bty = "n", xaxt = "n", yaxt = "n",
           log = xlog, xlab=xlab,ylab=ylab,... )
     par( xaxt = "s" )
-    axis( 1,at = round( 10 ^ pretty( log( exp( xlim ),10 ), 6 ), 2 ) )
+    if (logeffect)
+    	axis( 1,at = round( 10 ^ pretty( log( exp( xlim ),10 ), 6 ), 2 ) )
+    else
+    	axis( 1,at = pretty(xlim, 6 ) )
+	
     if ( !is.null( zero ) )
         abline( v = zero, lty = 2, lwd = 2 ,col=colors$zero)
     ci.value <- -qnorm( ( 1 - conf.level ) / 2 )
@@ -312,10 +485,10 @@ metaplot <- function( mn, se, nn=NULL, labels=NULL, conf.level = .95,
         lines( c( lower[i], upper[i] ), c( -i, -i ), lwd = lwd, col=colors$lines,... )
     }
     if ( !is.null( labels ) )
-        text( rep( nxlim[1], n ), -( 1:n ), labels,..., adj=0 )
+        text( rep( nxlim[1], n ), -( 1:n ), labels,..., col=colors$text,adj=0 )
     if ( is.null( nn ) ) 
         nn <- se ^ -2
-    yscale <- 0.3 * boxsize / max( sqrt( nn ), na.rm = T )
+    yscale <- 0.3 * boxsize / max( sqrt( nn ), na.rm = TRUE )
     if ( logeffect ) { 
         scale <- ( nxlim[2] / nxlim[1] ) ^ ( yscale / ( 4 + n ) )
         xl <- exp( mn ) * ( scale ^ -sqrt( nn ) )
@@ -330,8 +503,8 @@ metaplot <- function( mn, se, nn=NULL, labels=NULL, conf.level = .95,
     yt <- ( 1:n ) + yscale * sqrt( nn )
     for ( i in 1:n ) {
         if ( !is.finite( mn[i] ) ) 
-            next
-        rect( xl[i], -yb[i], xr[i], -yt[i], col = colors$box,border=  colors$box)
+            next  
+     rect( xl[i], -yb[i], xr[i], -yt[i], col = colors$box,border=  colors$box)
     }
     if ( !is.null( summn ) ) {
         if ( logeffect ) {
@@ -349,6 +522,62 @@ metaplot <- function( mn, se, nn=NULL, labels=NULL, conf.level = .95,
         yt <- n + 3 + sqrt( sumnn ) * yscale
         polygon( c( xl, x0, xr, x0 ), -c( y0, yt, y0, yb ),
     	         col = colors$summary, border = colors$summary )
-        text( nxlim[1], -y0, labels = summlabel, adj = 0 )
+        text( nxlim[1], -y0, labels = summlabel, adj = 0,col=colors$text )
     }
 }
+
+funnelplot<-function(x,...)
+    UseMethod("funnelplot")
+
+funnelplot.meta.MH<-function(x,...){
+    funnelplot.default(x$logOR,x$selogOR,summ=x$logMH,...)
+}
+funnelplot.meta.DSL<-function(x,...){
+    funnelplot.default(x$logOR,x$selogOR,summ=x$logDSL,...)
+}
+
+funnelplot.meta.summaries<-function(x,...){
+    funnelplot.default(x$effects,x$stderrs,summ=x$summary,...)
+}
+
+
+funnelplot.default<-function(d,se,size=1/se,summ=NULL,xlab="Effect",ylab="Size",
+		colors=meta.colors(),
+		conf.level=0.95,plot.conf=FALSE,zero=NULL,mirror=FALSE)
+{
+   finite<-function(x) x[is.finite(x)]
+    
+   if (mirror && is.null(summ))
+	stop("Can't do a mirror plot without a summary value")
+
+   if (plot.conf){
+	ci<--qnorm((1-conf.level)/2)
+	xlim<-range(finite(c(zero,d-ci*se,d+ci*se)))
+	if (mirror)
+	  xlim<-range(finite(c(xlim,2*summ-d-ci*se,2*summ-d+ci*se)))
+   }else{
+      xlim<-range(finite(c(zero,d)))
+      if (mirror)
+	xlim<-range(finite(c(xlim,2*summ-d,2*summ+d)))
+   }
+   plot(d,size,ylim=c(0,max(size)*1.1),xlim=xlim,xlab=xlab,
+	ylab=ylab,col=if(is.null(colors$points)) par("fg") else colors$points)
+
+   if (plot.conf)
+       segments(d-ci*se,size,d+ci*se,size,col=if(is.null(colors$conf)) par("fg") else colors$conf,lwd=2)
+   if (!is.null(summ))
+	   abline(v=summ,col=if(is.null(colors$summary)) par("fg") else colors$summary,lty=2,lwd=2)
+
+   if(!is.null(zero))
+	abline(v=zero,col=if(is.null(colors$zero)) par("fg") else colors$zero,lwd=2)
+
+   if(mirror){
+	points(2*summ-d,size,col=if(is.null(colors$mirror)) par("fg") else colors$mirror)
+       if (plot.conf)
+	segments(2*summ-d-ci*se,size,2*summ-d+ci*se,size,col=if(is.null(colors$mirror)) par("fg") else colors$mirror,lwd=2)
+  }
+}
+
+
+
+

@@ -1,7 +1,12 @@
-meta.MH		  Mantel-Haenszel method
-meta.DSL	  DerSimonian-Laird method
-plot.meta.MH	  meta-analysis plots
-plot.meta.DSL	  meta-analysis plots
-summary.meta.MH   
-summary.meta.DSL
-catheter	  data: antibacterial coating on venous catheters
+Meta-analysis software
+--- for binary outcomes
+meta.DSL	   Random effects (DerSimonian-Laird) meta-analysis
+meta.MH            Fixed effects (Mantel-Haenszel) meta-analysis
+--- for effect estimates
+meta.summaries     Meta-analysis of effect estimates
+--- graphics
+plot.meta.{type}   Meta-analysis plots
+metaplot	   Meta-analysis plots
+funnelplot	   Funnel plot for publication bias	
+--- examples
+catheter           Meta-analysis of antibacterial catheter coating

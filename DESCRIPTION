@@ -1,8 +1,11 @@
 Package: rmeta
-Version: 2.0
-Authors: Thomas Lumley <thomas@biostat.washington.edu>
+Version: 2.1
+Author: Thomas Lumley <tlumley@u.washington.edu>
+Maintainer: Thomas Lumley <tlumley@u.washington.edu>
 Description: Functions for simple fixed and random effects meta-analysis
-    for two-sample comparison of binary outcomes. Draws standard summary
-    plots and computes odds ratios and tests for association and
-    heterogeneity
-License: GPL version 2 or newer
+    for two-sample comparisons. Draws standard summary
+    plots, funnel plots, and computes odds ratios and tests for
+    association and heterogeneity
+Title: Meta-analysis.
+License: GPL version 2
+

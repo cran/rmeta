@@ -34,3 +34,4 @@ summary(b)
 plot(a)
 plot(b)
 }
+\keyword{datasets}

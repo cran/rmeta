@@ -5,7 +5,7 @@ meta.DSL(ntrt, nctrl, ptrt, pctrl, names=NULL, data=NULL,
  subset=NULL,conf.level=0.95)
 summary.meta.DSL(object,conf.level=NULL)
 plot.meta.DSL(object,summary=T,summlabel="Summary",\dots,conf.level=NULL,
-colors=list(box="black",lines="gray",summary="black",zero="lightgray"))
+colors=meta.colors())
 }
 \alias{meta.DSL}
 \alias{summary.meta.DSL}
@@ -24,9 +24,7 @@ colors=list(box="black",lines="gray",summary="black",zero="lightgray"))
  \item{summlabel}{Label for the summary odds ratio}
  \item{\dots}{other graphical arguments}
  \item{conf.level}{Coverage for confidence intervals}
- \item{colors}{colors for plotting. If this is a single color it will be
-   used for all components, if \code{NULL} then \code{par("fg")} will be
-   used}
+ \item{colors}{see \code{\link{meta.colors}}}
 }
 \description{
 Computes the individual odds ratios, the summary odds ratio, the random
@@ -61,7 +59,6 @@ error.
     odds ratio}
   \item{tau2}{Estimated random effects variance}
 }
-\references{}
 \author{Thomas Lumley}
 
 \seealso{\code{\link{plot}},\code{\link{par}},\code{\link{meta.MH}} }
@@ -75,7 +72,8 @@ plot(b)
 e<-meta.DSL(n.trt,n.ctrl,inf.trt,inf.ctrl,data=catheter,names=Name,subset=c(13,6,3,12,4,11,1,14,8,10,2))
 e
 summary(e)
-plot(e,colors=NULL)
+#tasteless
+plot(e,colors=meta.colors(summary="green",lines="purple",box="orange"))
 }
 \keyword{htest}
 \keyword{hplot}
