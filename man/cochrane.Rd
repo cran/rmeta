@@ -36,7 +36,8 @@ perform systematic reviews of the entire clinical trial literature.
 }
 \examples{
 data(cochrane)
-steroid<-meta.MH(n.trt,n.ctrl,ev.trt,ev.ctrl,names=name,data=cochrane)
-plot(steroid,col=meta.colors("RoyalBlue"))
+steroid <- meta.MH(n.trt, n.ctrl, ev.trt, ev.ctrl,
+                   names=name, data=cochrane)
+plot(steroid, col=meta.colors("RoyalBlue"))
 }
 \keyword{datasets}

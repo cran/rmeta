@@ -1,11 +1,11 @@
 \name{meta.DSL}
 \title{Random effects (DerSimonian-Laird) meta-analysis}
 \usage{
-meta.DSL(ntrt, nctrl, ptrt, pctrl, names=NULL, data=NULL,
- subset=NULL,conf.level=0.95)
-summary.meta.DSL(object,conf.level=NULL)
-plot.meta.DSL(object,summary=T,summlabel="Summary",\dots,conf.level=NULL,
-colors=meta.colors())
+meta.DSL(ntrt, nctrl, ptrt, pctrl, conf.level=0.95,
+         names=NULL, data=NULL, subset=NULL, na.action=na.fail)
+summary.meta.DSL(object, conf.level=NULL, \dots)
+plot.meta.DSL(x, summary=TRUE, summlabel="Summary",
+             conf.level=NULL, colors=meta.colors(), \dots)
 }
 \alias{meta.DSL}
 \alias{summary.meta.DSL}
@@ -18,15 +18,17 @@ colors=meta.colors())
  \item{nctrl}{Number of subjects in control group }
  \item{ptrt}{Number of events in treated/exposed group}
  \item{pctrl}{Number of events in control group}
+ \item{conf.level}{Coverage for confidence intervals}
  \item{names}{names or labels for studies}
  \item{data}{data frame to interpret variables}
  \item{subset}{subset of studies to include}
- \item{object}{a \code{meta.DSL} object}
+ \item{na.action}{a function which indicates what should happen when
+    the data contain \code{NA}s.  Defaults to \code{\link{na.fail}}.}
+ \item{x,object}{a \code{meta.DSL} object}
  \item{summary}{Plot the summary odds ratio?}
  \item{summlabel}{Label for the summary odds ratio}
- \item{\dots}{other graphical arguments}
- \item{conf.level}{Coverage for confidence intervals}
  \item{colors}{see \code{\link{meta.colors}}}
+ \item{\dots}{further arguments to be passed from or to methods.}
 }
 \description{
 Computes the individual odds ratios, the summary odds ratio, the random
@@ -67,15 +69,17 @@ error.
 
 \examples{
 data(catheter)
-b<-meta.DSL(n.trt,n.ctrl,col.trt,col.ctrl,data=catheter,names=Name,subset=c(13,6,5,3,7,12,4,11,1,8,10,2))
+b <- meta.DSL(n.trt, n.ctrl, col.trt, col.ctrl, data=catheter,
+              names=Name, subset=c(13,6,5,3,7,12,4,11,1,8,10,2))
 b
 summary(b)
 plot(b)
-e<-meta.DSL(n.trt,n.ctrl,inf.trt,inf.ctrl,data=catheter,names=Name,subset=c(13,6,3,12,4,11,1,14,8,10,2))
+e <- meta.DSL(n.trt, n.ctrl, inf.trt, inf.ctrl, data=catheter,
+              names=Name, subset=c(13,6,3,12,4,11,1,14,8,10,2))
 e
 summary(e)
-#tasteless
-plot(e,colors=meta.colors(summary="green",lines="purple",box="orange"))
+##tasteless
+plot(e, colors=meta.colors(summary="green",lines="purple",box="orange"))
 }
 \keyword{htest}
 \keyword{hplot}

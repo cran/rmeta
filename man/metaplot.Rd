@@ -9,7 +9,12 @@
   methods for meta-analysis objects.
 }
 \usage{
-metaplot(mn, se, nn=NULL, labels=NULL, conf.level=0.95, xlab="Odds ratio", ylab="Study Reference",  xlim=NULL, summn=NULL, sumse=NULL, sumnn=NULL, summlabel="Summary", logeffect=FALSE, lwd=2, boxsize=1, zero=if (logeffect) 1 else 0, colors=meta.colors(), ...)
+metaplot(mn, se, nn=NULL, labels=NULL, conf.level=0.95,
+         xlab="Odds ratio", ylab="Study Reference",xlim=NULL,
+         summn=NULL, sumse=NULL, sumnn=NULL, summlabel="Summary",
+         logeffect=FALSE, lwd=2, boxsize=1,
+         zero=if (logeffect) 1 else 0,
+         colors=meta.colors(), ...)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
@@ -21,6 +26,7 @@ metaplot(mn, se, nn=NULL, labels=NULL, conf.level=0.95, xlab="Odds ratio", ylab=
   \item{conf.level}{Confidence level for confidence intervals}
   \item{xlab}{label for the point estimate axis}
   \item{ylab}{label for the axis indexing the different studies}
+  \item{xlim}{the range for the x axis.}
   \item{summn}{summary estimate}
   \item{sumse}{standard error of summary estimate}
   \item{sumnn}{precision of summary estimate}
@@ -34,17 +40,28 @@ metaplot(mn, se, nn=NULL, labels=NULL, conf.level=0.95, xlab="Odds ratio", ylab=
 }
 
 \value{
-This function is used for its side-effect.
+  This function is used for its side-effect.
 }
 
-\seealso{\code{\link{plot.meta.DSL}},\code{\link{plot.meta.MH}},\code{\link{plot.meta.summaries}} }
+\seealso{
+  \code{\link{plot.meta.DSL}},
+  \code{\link{plot.meta.MH}},
+  \code{\link{plot.meta.summaries}}
+}
 
 \examples{
-    data(catheter)
-    a<-meta.MH(n.trt,n.ctrl,col.trt,col.ctrl,data=catheter,names=Name,subset=c(13,6,5,3,7,12,4,11,1,8,10,2))
-    metaplot(a$logOR,a$selogOR,nn=a$selogOR^-2,a$names,summn=a$logMH,sumse=a$selogMH,sumnn=a$selogMH^-2,logeffect=TRUE)
-    ## angry fruit salad
-  metaplot(a$logOR,a$selogOR,nn=a$selogOR^-2,a$names,summn=a$logMH,sumse=a$selogMH,sumnn=a$selogMH^-2,logeffect=TRUE,colors=meta.colors(box="magenta",lines="blue",zero="red",summary="orange",text="forestgreen"))
+data(catheter)
+a <- meta.MH(n.trt, n.ctrl, col.trt, col.ctrl, data=catheter,
+             names=Name, subset=c(13,6,5,3,7,12,4,11,1,8,10,2))
+metaplot(a$logOR, a$selogOR, nn=a$selogOR^-2, a$names,
+         summn=a$logMH, sumse=a$selogMH, sumnn=a$selogMH^-2,
+         logeffect=TRUE)
+## angry fruit salad
+metaplot(a$logOR, a$selogOR, nn=a$selogOR^-2, a$names,
+         summn=a$logMH, sumse=a$selogMH, sumnn=a$selogMH^-2,
+         logeffect=TRUE, colors=meta.colors(box="magenta",
+             lines="blue", zero="red", summary="orange",
+             text="forestgreen"))
 }
 \keyword{hplot}
 

@@ -1,42 +1,44 @@
 \name{meta.summaries}
+\title{Meta-analysis based on effect estimates}
 \alias{meta.summaries}
 \alias{print.meta.summaries}
 \alias{plot.meta.summaries}
 \alias{summary.meta.summaries}
 \alias{print.summary.meta.summaries}
-%- Also NEED an `\alias' for EACH other topic documented here.
-\title{Meta-analysis based on effect estimates}
 \description{
- Computes a summary estimate and confidence interval from a collection
- of treatment effect estimates and standard errors. Allows fixed or
- random effects, optional quality weights.
+  Computes a summary estimate and confidence interval from a collection
+  of treatment effect estimates and standard errors.  Allows fixed or 
+  random effects, optional quality weights.
 }
 \usage{
 meta.summaries(d, se, method=c("fixed", "random"), weights=NULL,
-logscale=FALSE, names=NULL, data=NULL, conf.level=0.95, subset=NULL,
-na.action=na.fail)
-summary.meta.summaries(object,conf.level=NULL)
-plot.meta.summaries(object,summary=T,summlabel="Summary",\dots,conf.level=NULL,
-colors=meta.colors())
+               logscale=FALSE, names=NULL, data=NULL,
+               conf.level=0.95, subset=NULL,na.action=na.fail)
+summary.meta.summaries(object,conf.level=NULL,\dots)
+plot.meta.summaries(x,summary=TRUE,summlabel="Summary",
+                    conf.level=NULL,colors=meta.colors(),
+                    xlab=NULL,logscale=NULL,\dots)
 }
-%- maybe also `usage' for other objects documented here.
 \arguments{
   \item{d}{Effect estimates}
   \item{se}{standard errors for \code{d}}
-  \item{method}{Standard errors and default weights from fixed or random-effects? }
+  \item{method}{Standard errors and default weights from fixed or
+    random-effects? }
   \item{weights}{Optional weights (eg quality weights)}
   \item{logscale}{Effect is on a log scale? (for plotting) }
   \item{names}{labels for the separate studies }
   \item{data}{optional data frame to find variables in}
   \item{conf.level}{level for confidence intervals }
   \item{subset}{Which studies to use}
-  \item{na.action}{function to handle \code{NA}s}
-  \item{object}{a \code{meta.summaries} object}
- \item{summary}{Plot the summary odds ratio?}
- \item{summlabel}{Label for the summary odds ratio}
- \item{\dots}{other graphical arguments}
- \item{conf.level}{Coverage for confidence intervals}
- \item{colors}{see \code{\link{meta.colors}}}}
+  \item{na.action}{a function which indicates what should happen when
+    the data contain \code{NA}s.  Defaults to \code{\link{na.fail}}.}
+  \item{x,object}{a \code{meta.summaries} object}
+  \item{summary}{Plot the summary odds ratio?}
+  \item{summlabel}{Label for the summary odds ratio}
+  \item{colors}{see \code{\link{meta.colors}}}
+  \item{xlab}{label for the effect estimate axis.}
+  \item{\dots}{further arguments to be passed to or from methods.}
+}
 \details{
   The summary estimate is a weighted average. If \code{weights} are
   specified they are used, otherwise the reciprocal of the estimated
@@ -55,19 +57,25 @@ colors=meta.colors())
 }
 
 \value{
-An object of class \code{meta.summaries}, which has
-\code{print},\code{plot},\code{summary} and \code{\link{funnelplot}} methods.
+  An object of class \code{meta.summaries}, which has
+  \code{print},\code{plot},\code{summary} and \code{\link{funnelplot}}
+  methods.
 }
 \author{Thomas Lumley}
 
-
-\seealso{\code{\link{meta.DSL}},\code{\link{meta.MH}},\code{\link{funnelplot}},\code{\link{metaplot}} }
+\seealso{
+  \code{\link{meta.DSL}},
+  \code{\link{meta.MH}},
+  \code{\link{funnelplot}},
+  \code{\link{metaplot}}
+}
 
 \examples{
 data(catheter)
-b<-meta.DSL(n.trt,n.ctrl,col.trt,col.ctrl,data=catheter,names=Name,subset=c(13,6,5,3,12,4,11,1,8,10,2))
-d<-meta.summaries(b$logOR,b$selogOR,names=b$names,method="random",logscale=TRUE)
+b <- meta.DSL(n.trt, n.ctrl, col.trt, col.ctrl, data=catheter,
+              names=Name, subset=c(13,6,5,3,12,4,11,1,8,10,2))
+d <- meta.summaries(b$logOR, b$selogOR, names=b$names,
+                    method="random", logscale=TRUE)
 }
 \keyword{htest}
 \keyword{hplot}
-

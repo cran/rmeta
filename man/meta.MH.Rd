@@ -1,10 +1,11 @@
 \name{meta.MH}
 \title{Fixed effects (Mantel-Haenszel) meta-analysis}
 \usage{
-meta.MH(ntrt, nctrl, ptrt, pctrl, names=NULL, data=NULL,
-subset=NULL,conf.level=0.95)
-summary.meta.MH(object,conf.level=NULL)
-plot.meta.MH(object,summary=T,summlabel="Summary",\dots,conf.level=NULL,colors=meta.colors())
+meta.MH(ntrt, nctrl, ptrt, pctrl, conf.level=0.95,
+        names=NULL, data=NULL, subset=NULL, na.action = na.fail)
+summary.meta.MH(object, conf.level=NULL, \dots)
+plot.meta.MH(x, summary=TRUE, summlabel="Summary",
+             conf.level=NULL, colors=meta.colors(), \dots)
 }
 \alias{meta.MH}
 \alias{summary.meta.MH}
@@ -13,19 +14,22 @@ plot.meta.MH(object,summary=T,summlabel="Summary",\dots,conf.level=NULL,colors=m
 \alias{plot.meta.MH}
 %- Also NEED an `\alias' for EACH other function documented here.
 \arguments{
- \item{ntrt}{Number of subjects in treated/exposed group}
- \item{nctrl}{Number of subjects in control group }
- \item{ptrt}{Number of events in treated/exposed group}
- \item{pctrl}{Number of events in control group}
- \item{names}{names or labels for studies}
- \item{data}{data frame to interpret variables}
- \item{subset}{subset of studies to include}
- \item{object}{a \code{meta.MH} object}
- \item{summary}{Plot the summary odds ratio?}
- \item{summlabel}{Label for the summary odds ratio}
- \item{\dots}{other graphical arguments}
- \item{conf.level}{Coverage for confidence intervals}
- \item{colors}{see \code{\link{meta.colors}}}}
+  \item{ntrt}{Number of subjects in treated/exposed group}
+  \item{nctrl}{Number of subjects in control group }
+  \item{ptrt}{Number of events in treated/exposed group}
+  \item{pctrl}{Number of events in control group}
+  \item{names}{names or labels for studies}
+  \item{data}{data frame to interpret variables}
+  \item{subset}{subset of studies to include}
+  \item{na.action}{a function which indicates what should happen when
+    the data contain \code{NA}s.  Defaults to \code{\link{na.fail}}.}
+  \item{x,object}{a \code{meta.MH} object}
+  \item{summary}{Plot the summary odds ratio?}
+  \item{summlabel}{Label for the summary odds ratio}
+  \item{conf.level}{Coverage for confidence intervals}
+  \item{colors}{see \code{\link{meta.colors}}}
+  \item{\dots}{further arguments to be passed to or from methods.}
+}
 \description{
 Computes the individual odds ratios, the Mantel-Haenszel summary odds
 ratio, and Woolf's test for heterogeneity. The \code{print} method gives
@@ -67,15 +71,17 @@ error.
 
 \examples{
 data(catheter)
-a<-meta.MH(n.trt,n.ctrl,col.trt,col.ctrl,data=catheter,names=Name,subset=c(13,6,5,3,7,12,4,11,1,8,10,2))
+a <- meta.MH(n.trt, n.ctrl, col.trt, col.ctrl, data=catheter,
+             names=Name, subset=c(13,6,5,3,7,12,4,11,1,8,10,2))
 a
 summary(a)
 plot(a)
-d<-meta.MH(n.trt,n.ctrl,inf.trt,inf.ctrl,data=catheter,names=Name,subset=c(13,6,3,12,4,11,1,14,8,10,2))
+d <- meta.MH(n.trt, n.ctrl, inf.trt, inf.ctrl, data=catheter,
+             names=Name, subset=c(13,6,3,12,4,11,1,14,8,10,2))
 d
 summary(d)
 ## plot with par("fg")
-plot(d,colors=meta.colors(NULL))
+plot(d, colors=meta.colors(NULL))
 }
 \keyword{htest}
 \keyword{hplot}

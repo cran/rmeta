@@ -8,18 +8,21 @@
 \title{Funnel plot for publication bias}
 \description{
   Plots the treatment difference for trials against the size of the
-  trial (or other specified variable). Asymmetry in the plot often
-  indicates publication bias. Generic, with methods for meta-analysis objects
+  trial (or other specified variable).  Asymmetry in the plot often
+  indicates publication bias.  Generic, with methods for meta-analysis
+  objects.
 }
 \usage{
-funnelplot(object,...)
-funnelplot.default(d, se, size=1/se, summ=NULL, xlab="Effect", ylab="Size",
-colors=meta.colors(),conf.level=0.95, plot.conf=FALSE, zero=NULL, mirror=FALSE)
+funnelplot(x,\dots)
+funnelplot.default(x, se, size=1/se, summ=NULL,
+        xlab="Effect", ylab="Size", colors=meta.colors(),
+        conf.level=0.95, plot.conf=FALSE,
+        zero=NULL, mirror=FALSE, \dots)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{d}{Treatment difference}
-  \item{se}{Standard error of \code{d}}
+  \item{x}{Treatment difference}
+  \item{se}{Standard error of \code{x}}
   \item{size}{Variable for the vertical axis}
   \item{summ}{summary treatment difference}
   \item{xlab}{x-axis label }
@@ -29,6 +32,7 @@ colors=meta.colors(),conf.level=0.95, plot.conf=FALSE, zero=NULL, mirror=FALSE)
   \item{plot.conf}{Plot confidence intervals instead of just points?}
   \item{zero}{location of a null hypothesis line}
   \item{mirror}{Add points reflected around \code{summ}?}
+  \item{\dots}{further arguments to be passed from or to methods.}
 }
 \details{
   With the default value of \code{size} the plot should appear as a
@@ -39,17 +43,23 @@ colors=meta.colors(),conf.level=0.95, plot.conf=FALSE, zero=NULL, mirror=FALSE)
   points will separate from the real studies.  
 }
 \value{
-  Used for its side-effect
+  Used for its side-effect.
 }
 \author{Thomas Lumley}
 
-\seealso{\code{\link{meta.DSL}},\code{\link{meta.MH}},\code{\link{meta.summaries}},\code{\link{metaplot}}}
-
+\seealso{
+  \code{\link{meta.DSL}},
+  \code{\link{meta.MH}},
+  \code{\link{meta.summaries}},
+  \code{\link{metaplot}}
+}
 \examples{
 data(catheter)
-a<-meta.MH(n.trt,n.ctrl,col.trt,col.ctrl,data=catheter,names=Name,subset=c(13,6,5,3,7,12,4,11,1,8,10,2))
-funnelplot(a$logOR,a$selogOR)
-funnelplot(a$logOR,a$selogOR,plot.conf=TRUE,summ=a$logMH,mirror=TRUE)
-funnelplot(a,plot.conf=TRUE)
+a <- meta.MH(n.trt, n.ctrl, col.trt, col.ctrl, data=catheter,
+             names=Name, subset=c(13,6,5,3,7,12,4,11,1,8,10,2))
+funnelplot(a$logOR, a$selogOR)
+funnelplot(a$logOR, a$selogOR,
+           plot.conf=TRUE, summ=a$logMH, mirror=TRUE)
+funnelplot(a, plot.conf=TRUE)
 }
-\keyword{hplot}%-- one or more ...
+\keyword{hplot}
