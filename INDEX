@@ -1,0 +1,7 @@
+meta.MH		  Mantel-Haenszel method
+meta.DSL	  DerSimonian-Laird method
+plot.meta.MH	  meta-analysis plots
+plot.meta.DSL	  meta-analysis plots
+summary.meta.MH   
+summary.meta.DSL
+catheter	  data: antibacterial coating on venous catheters
