@@ -1,3 +1,5 @@
+2.4-1 bug in meta.cum (ripley@stats.ox.ac.uk)
+
 2.4  Cumulative meta-analyses, changed n-1 to n in formula for tau in
      meta.DSL, allowed relative risk in addition to odds ratio.
 

@@ -13,6 +13,7 @@ meta.cum<- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
     mf$subset <- NULL
     mf$statistic<- NULL
     mf$conf.level<-NULL
+    mf$method<-NULL 
     mf[[1]] <- as.name( "data.frame" )
     mf <- eval( mf,data )
     if ( !is.null( subset ) ) 
