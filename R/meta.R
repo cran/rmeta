@@ -164,6 +164,171 @@ plot.meta.cum <- function( x,  conf.level=NULL,colors=meta.colors(),xlab=NULL,
  
 
 
+meta.score<-function( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
+		      names = NULL, data = NULL, 
+		      subset = NULL, na.action = na.fail ,statistic="RR",control=1.5) {
+  statistic<-match.arg(statistic)
+  if (conf.level>1 & conf.level<100)
+    conf.level<-conf.level/100
+
+  zalpha<-abs(qnorm((1-conf.level)/2))
+
+  if ( is.null( data ) ) 
+    data <- sys.frame( sys.parent() )
+  mf <- match.call()
+  mf$data <- NULL 
+  mf$na.action<-NULL
+  mf$subset <- NULL
+  mf$statistic<- NULL
+  mf[[1]] <- as.name( "data.frame" )
+  mf <- eval( mf,data )
+  if ( !is.null( subset ) ) 
+    mf <- mf[subset,]
+  mf <- na.action( mf )
+  x1 <- as.numeric(mf$ptrt) ## integers would overflow
+  x0 <- as.numeric(mf$pctrl)
+  n1 <- as.numeric(mf$ntrt)
+  n0 <- as.numeric(mf$nctrl)
+  
+  quadsolve <- function(a,b,c){ 
+    discr <- b*b-4*a*c
+    cbind(-b-sqrt(discr), -b+sqrt(discr))/(2*a)
+  }
+
+  fp0<-function(phi) {
+    rval <- quadsolve((n0+n1)*phi, -((x0+n1)*phi+x1+n0), x0+x1)
+    ifelse( abs(rval[,1]-x0/n0) < abs(rval[,2]-x0/n0), rval[,1],rval[,2])
+  }
+
+  u<-function(p0,p1){
+    (1-p0)/(n0*p0)+(1-p1)/(n1*p1)
+  }
+  v<-function(phi,p0){
+    p1<-p0*phi
+    1/u(p0,p1)
+  }
+
+  ui<-function(p0,p1,i){
+    p1<-pmin(p1,1)
+    rval<-(1-p0)/(n0[i]*p0)+(1-p1)/(n1[i]*p1)
+  }
+    
+  gamma<-function(phi,p0){
+    p1<-pmin(1,phi*p0)
+    q1<-1-p1
+    q0<-1-p0
+    num1<-q1*(q1-p1)/(n1*p1*n1*p1)-q0*(q0-p0)/(n0*p0*n0*p0)
+    num2<-v(phi,p0)^3
+    sum(num1*num2)/sum(sqrt(num2))
+  }
+
+  z<-function(phi,p0){
+    p1<-phi*p0
+    q1<-1-p1
+    sum((x1-n1*p1)/q1)/sqrt(sum(v(phi,p0)))
+  }
+
+  zi<-function(phi,p0,i){
+    p1i<-pmin(1,phi*p0[i])
+    q1i<-1-p1i
+    (x1[i]-n1[i]*p1i)/(q1i/sqrt(ui(p0[i],p1i,i)))
+  }
+
+  middles<-(x1/n1)/(x0/n0)
+  uppers<-exp(log(middles)+control*zalpha*sqrt(1/x0+1/x1))
+  lowers<-exp(log(middles)-control*zalpha*sqrt(1/x0+1/x1))
+  for(i in 1:length(x0)){
+    if (x0[i]==0)
+      uppers[i]<-Inf
+    else
+      uppers[i]<-uniroot(function(phi) zi(phi,fp0(phi),i)+zalpha,
+                       interval=c(middles[i], uppers[i]))$root
+    if (x1[i]==0)
+      lowers[i]<-0
+    else
+      lowers[i]<-uniroot(function(phi) zi(phi,fp0(phi),i)-zalpha,
+                         interval=c(middles[i], lowers[i]))$root
+  }
+  
+  middle<-uniroot(function(phi) z(phi,fp0(phi)),
+                  interval=range( lowers,uppers))$root
+
+  
+  upper0<-exp((1+control*zalpha/sqrt(sum(1/u(x0/n0,x1/n1))))*log(middle))
+  lower0<-exp((1-control*zalpha/sqrt(sum(1/u(x0/n0,x1/n1))))*log(middle))
+
+  upper<-uniroot(function(phi) z(phi,fp0(phi))+zalpha,
+                     interval=c(middle,max(lower0,upper0)))$root
+  lower<-uniroot(function(phi) z(phi,fp0(phi))-zalpha,
+                     interval=c(min(lower0,upper0),middle))$root
+
+
+  rval<-list(summary=middle, ci=c(lower,upper), chisq=z(1,fp0(1))^2,
+             RRs=middles,cis=cbind(lowers,uppers),call=sys.call(),
+             conf.level=conf.level,control=control)
+  class(rval)<-c("meta.score.RR","meta.score")                 
+  rval
+}
+
+summary.meta.score <- function( object ,...) {
+    conf.level <- object$conf.level
+    if (conf.level>1 & conf.level<100)
+        conf.level<-conf.level/100
+
+    
+    m <-cbind(object$RRs,object$cis)
+    dimnames( m ) <- list( as.character( object$names ),
+                          c( "RR", "(lower ", paste(100*conf.level,"% upper)",
+                                                    sep=""))  )
+    
+    rval <- list( stats = m, call = object$call, 
+    		  RRci = c(object$ci[1],object$summary,object$ci[2]),
+                  conf.level=conf.level, statistic="RR"
+    	        )
+    class( rval ) <- "summary.meta.score"
+    rval
+}
+
+print.summary.meta.score <- function( x, ... ) {
+    cat( "Fixed effects (likelihood score) meta-analysis\n" )
+    cat( "Call: " )
+    print( x$call )
+    cat( "------------------------------------\n" )
+    print( round( x$stats,2 ) )
+    cat( "------------------------------------\n" )
+    conf.level <- x$conf.level
+    label<-paste("RR = ")
+    cat( paste( label, round( x$RRci[2], 2 ), " ",
+    	        conf.level*100, "% CI ( ", round( x$RRci[1],2 ), ", ", 
+    	        round( x$RRci[3],2 ), " )\n", sep="" 
+    	      ) 
+       )
+#    cat( paste( "Test for heterogeneity: X^2( ",x$het[2]," ) = ",
+#       	        round( x$het[1],2 ), " ( p-value ",
+#       	        round( x$het[3],4 ), " )\n", sep = "" 
+#       	      ) 
+#       )
+}
+
+
+print.meta.score <- function( x, ... ) {
+    cat( "Fixed effects (likelihood score) Meta-Analysis\n" )
+    cat( "Call: " )
+    print( x$call )
+    conf.level <- x$conf.level
+    ci <- x$ci
+    label<-paste("Relative risk","= ")
+    cat( paste( label, round( x$summary,2 ), "    ",
+    	        conf.level * 100, "% CI ( ", round( ci[1],2 ), 
+    	        ", ", round( ci[2],2 ), " )\n", sep = "" 
+    	      ) 
+       )
+##    cat( paste( "Test for heterogeneity: X^2( ",x$het[2]," ) = ",
+##    	        round( x$het[1],2 ), " ( p-value ", 
+##    	        round( x$het[3],4 ), " )\n", sep="" ) )
+} 
+
+
 meta.MH <- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
 		      names = NULL, data = NULL, 
 		      subset = NULL, na.action = na.fail ,statistic="OR") {
@@ -197,8 +362,8 @@ meta.MH <- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
     R <- A * D / Ti
     S <- B * C / Ti
    
-    G<- A*(A+C)/Ti
-    H<- B*(B+D)/Ti
+    G<- A*(B+D)/Ti
+    H<- B*(A+C)/Ti
 
     logMH <- log( sum( R ) / sum( S ) )
     varMH <- sum( P * R ) / ( 2 * sum( R )^2 ) + 
@@ -346,6 +511,7 @@ plot.meta.MH <- function( x, summary = TRUE, summlabel = "Summary", conf.level=N
                colors=colors,xlab=xlab,... )
   }
  
+
 # Meta Analysis using DerSimonian-Laird Method.
 meta.DSL <- function( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
                      names = NULL, data = NULL,

@@ -1,3 +1,8 @@
+2.12 Added meta.score for score-based confidence intervals for RRs
+
+     meta.MH for relative risks was wrong when exposed and unexposed 
+      groups were very different in size
+
 2.11 codoc changes.
 
 2.10 meta.MH was returning the trial-specific odds-ratio standard
