@@ -1,3 +1,6 @@
+2.7  add more options to meta.colors.  
+     don't draw the zero line over the labels.
+
 2.6  Change meta.cum to cummeta, add cummeta.summaries, 
      Change x-axis tick calculation for log scales
 
