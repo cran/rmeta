@@ -1,5 +1,5 @@
 Package: rmeta
-Version: 1.0
+Version: 2.0
 Authors: Thomas Lumley <thomas@biostat.washington.edu>
 Description: Functions for simple fixed and random effects meta-analysis
     for two-sample comparison of binary outcomes. Draws standard summary

@@ -1,9 +1,11 @@
 \name{meta.DSL}
 \title{Random effects (DerSimonian-Laird) meta-analysis}
 \usage{
-meta.DSL(ntrt, nctrl, ptrt, pctrl, names=NULL, data=NULL, subset=NULL)
-summary.meta.DSL(object)
-plot.meta.DSL(object,summary=T,summlabel="Summary",\dots)
+meta.DSL(ntrt, nctrl, ptrt, pctrl, names=NULL, data=NULL,
+ subset=NULL,conf.level=0.95)
+summary.meta.DSL(object,conf.level=NULL)
+plot.meta.DSL(object,summary=T,summlabel="Summary",\dots,conf.level=NULL,
+colors=list(box="black",lines="gray",summary="black",zero="lightgray"))
 }
 \alias{meta.DSL}
 \alias{summary.meta.DSL}
@@ -21,14 +23,18 @@ plot.meta.DSL(object,summary=T,summlabel="Summary",\dots)
  \item{summary}{Plot the summary odds ratio?}
  \item{summlabel}{Label for the summary odds ratio}
  \item{\dots}{other graphical arguments}
+ \item{conf.level}{Coverage for confidence intervals}
+ \item{colors}{colors for plotting. If this is a single color it will be
+   used for all components, if \code{NULL} then \code{par("fg")} will be
+   used}
 }
 \description{
-Computes the individual odds ratios, the  summary odds
-ratio, the random effects variance, and Woolf's test for heterogeneity. The \code{print} method gives
-the summary and test for heterogeneity; the \code{summary} method also
-gives all the individual odds ratios and confidence intervals. Studies
-with zero or infinite odds ratio are omitted, as their variance cannot
-be calculated sensibly.
+Computes the individual odds ratios, the summary odds ratio, the random
+effects variance, and Woolf's test for heterogeneity. The \code{print}
+method gives the summary and test for heterogeneity; the \code{summary}
+method also gives all the individual odds ratios and confidence
+intervals. Studies with zero or infinite odds ratio are omitted, as
+their variance cannot be calculated sensibly.
 
 The \code{plot} method draws a standard meta-analysis plot. The
 confidence interval for each study is given by a horizontal line, and
@@ -69,7 +75,7 @@ plot(b)
 e<-meta.DSL(n.trt,n.ctrl,inf.trt,inf.ctrl,data=catheter,names=Name,subset=c(13,6,3,12,4,11,1,14,8,10,2))
 e
 summary(e)
-plot(e)
+plot(e,colors=NULL)
 }
 \keyword{htest}
 \keyword{hplot}
