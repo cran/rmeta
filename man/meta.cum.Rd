@@ -11,7 +11,7 @@ summary produced by a meta-analysis of the first \code{i} trials.
 }
 \usage{
 meta.cum(ntrt, nctrl, ptrt, pctrl, conf.level = 0.95, names = NULL, data= NULL, subset = NULL,
- na.action = na.fail, method = c("meta.MH", "meta.DSL"), statistic = "OR")
+ na.action =get(getOption("na.action")), method = c("meta.MH", "meta.DSL"), statistic = "OR")
 plot.meta.cum(x, conf.level = NULL, colors = meta.colors(), xlab = NULL, 
     summary.line = TRUE, summary.conf = FALSE, ...) 
 }
@@ -27,7 +27,7 @@ plot.meta.cum(x, conf.level = NULL, colors = meta.colors(), xlab = NULL,
  \item{na.action}{How to handle missing values}
   \item{method}{Which meta-analysis method to use}
   \item{statistic}{"OR" for odds ratio or "RR" for relative risk. }
- \item{x}{a \code{meta.MH} object}
+ \item{x}{a \code{meta.cum} object}
  \item{\dots}{other graphical arguments}
  \item{conf.level}{Coverage for confidence intervals}
  \item{colors}{see \code{\link{meta.colors}}}

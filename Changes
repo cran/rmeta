@@ -1,13 +1,19 @@
-2.4-1 bug in meta.cum (ripley@stats.ox.ac.uk)
+2.5  Random effects meta-analyses weren't actually using the DerSimonian &
+     Laird estimator but a different moment estimator.
+    <NBarrowman@exchange.cheo.on.ca>
+
+     Now uses the options() default for na.action
+
+     Colours can be specified as a vector, which will be recycled.
 
 2.4  Cumulative meta-analyses, changed n-1 to n in formula for tau in
      meta.DSL, allowed relative risk in addition to odds ratio.
 
 2.3  CMD check fixes (thanks, Kurt)
 
-2.1  Better color handling. 
+2.1  Better colour handling. 
      Funnel plots
      meta-analysis of non-binary data
 
 2.0  User-specified confidence level (mostly from Ko-Kang Wang)
-     Colors.
+     Colours.

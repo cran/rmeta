@@ -2,7 +2,8 @@
 \title{Random effects (DerSimonian-Laird) meta-analysis}
 \usage{
 meta.DSL(ntrt, nctrl, ptrt, pctrl, conf.level=0.95,
-         names=NULL, data=NULL, subset=NULL, na.action=na.fail,statistic="OR")
+         names=NULL, data=NULL, subset=NULL,
+         na.action=get(getOption("na.action")), statistic="OR")
 summary.meta.DSL(object, conf.level=NULL, \dots)
 plot.meta.DSL(x, summary=TRUE, summlabel="Summary",
              conf.level=NULL, colors=meta.colors(), xlab=NULL,\dots)
@@ -23,7 +24,7 @@ plot.meta.DSL(x, summary=TRUE, summlabel="Summary",
  \item{data}{data frame to interpret variables}
  \item{subset}{subset of studies to include}
  \item{na.action}{a function which indicates what should happen when
-   the data contain \code{NA}s.  Defaults to \code{\link{na.fail}}.}
+   the data contain \code{NA}s.}
  \item{statistic}{"OR" for odds ratio, "RR" for relative risk}
  \item{x,object}{a \code{meta.DSL} object}
  \item{summary}{Plot the summary odds ratio?}

@@ -1,7 +1,7 @@
 
 meta.cum<- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
 		      names = NULL, data = NULL, 
-		      subset = NULL, na.action = na.fail,
+		      subset = NULL, na.action = get(getOption("na.action")),
 			method=c("meta.MH","meta.DSL"),statistic="OR") {
     if (conf.level>1 & conf.level<100)
         conf.level<-conf.level/100
@@ -13,7 +13,6 @@ meta.cum<- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
     mf$subset <- NULL
     mf$statistic<- NULL
     mf$conf.level<-NULL
-    mf$method<-NULL 
     mf[[1]] <- as.name( "data.frame" )
     mf <- eval( mf,data )
     if ( !is.null( subset ) ) 
@@ -70,7 +69,7 @@ plot.meta.cum <- function( x,  conf.level=NULL,colors=meta.colors(),xlab=NULL,
 
 meta.MH <- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
 		      names = NULL, data = NULL, 
-		      subset = NULL, na.action = na.fail ,statistic="OR") {
+		      subset = NULL, na.action = get(getOption("na.action")) ,statistic="OR") {
     if (conf.level>1 & conf.level<100)
         conf.level<-conf.level/100
     if ( is.null( data ) ) 
@@ -258,7 +257,7 @@ plot.meta.MH <- function( x, summary = TRUE, summlabel = "Summary", conf.level=N
 # Meta Analysis using DerSimonian-Laird Method.
 meta.DSL <- function( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
 		      names = NULL, data = NULL,
-		      subset = NULL, na.action = na.fail,statistic="OR") {
+		      subset = NULL, na.action = get(getOption("na.action")),statistic="OR") {
     if (conf.level>1 & conf.level<100)
         conf.level<-conf.level/100
     if ( is.null( data ) ) 
@@ -284,22 +283,30 @@ meta.DSL <- function( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
     if(statistic=="OR"){
         ok <- is.finite( logORs )
         logs<-logORs
-       vars<-varORs
+        vars<-varORs
     } else    {
        ok <- is.finite(logRRs) 
-      vars<-varRRs
-      logs<-logRRs
-   }
-   df <- sum( ok ) - 1
+       vars<-varRRs
+       logs<-logRRs
+    }
+    df <- sum( ok ) - 1
     if ( any( !ok ) )
         warning( "Studies with 0/Inf statistic omitted" )
+    ## Nick Barrowman points out this is wrong (or at least non-standard)
+    ## tau2 <- max( 0, var( logs[ok] ) - sum( vars[ok] ) / ( length( ok ) ) )
+    ##wts <- 1 / ( vars + tau2 )
 
-    tau2 <- max( 0, var( logs[ok] ) - sum( vars[ok] ) / ( length( ok ) ) )
-    wts <- 1 / ( vars + tau2 )
+    vwts<-1/vars
+    logpooled<-sum(vwts[ok]*logs[ok])/sum(vwts[ok])
+    heterog <- sum( ( ( logs[ok] - logpooled )^2 ) / vars[ok] )    
+    tau2<- max(0, (heterog-df)/(sum(vwts[ok])-sum(vwts[ok]^2)/sum(vwts[ok])))
+
+    wts<-1/(vars+tau2)
     logDSL <- sum( wts[ok] * logs[ok] ) / sum( wts[ok] )
     varDSL <- 1 / sum( wts[ok] )
+    
     summary.test <- logDSL / sqrt( varDSL )
-    heterog <- sum( ( ( logs[ok] - logDSL )^2 ) / vars[ok] )
+
     df <- sum( ok ) - 1
     rval <- list( logs = logs, selogs = sqrt( vars ), 
     		  logDSL = logDSL, selogDSL = sqrt( varDSL ), 
@@ -398,7 +405,7 @@ plot.meta.DSL <- function( x,summary=TRUE,summlabel="Summary",conf.level=NULL,co
 
 meta.summaries<-function(d,se,method=c("fixed","random"),
 			weights=NULL,logscale=FALSE,names=NULL,data=NULL,
-			conf.level=.95,subset=NULL,na.action=na.fail)
+			conf.level=.95,subset=NULL,na.action=get(getOption("na.action")))
 {
       if (conf.level>1 & conf.level<100)
         conf.level<-conf.level/100
@@ -410,48 +417,53 @@ meta.summaries<-function(d,se,method=c("fixed","random"),
     mf$logscale<-NULL
     mf$subset <- NULL
     mf[[1]] <- as.name( "data.frame" )
-    mf <- eval( mf,data )
-    if ( !is.null( subset ) ) 
-        mf <- mf[subset,]
-    mf <- na.action( mf )
+      mf <- eval( mf,data )
+      if ( !is.null( subset ) ) 
+          mf <- mf[subset,]
+      mf <- na.action( mf )
+      
+      if (is.null(mf$names)){
+          if (is.null(mf$d))
+              mf$names<-seq(along=mf$d)
+          else
+              mf$names<-names(mf$d)
+      }
+      mf$names<-as.character(mf$names)
+      method<-match.arg(method)
+      vars<-mf$se^2
+      vwts<-1/vars
+      fixedsumm<-sum(vwts*mf$d)/sum(vwts)
+      Q<-sum( ( ( mf$d - fixedsumm )^2 ) / vars ) 
+      df<-NROW(mf)-1
+      
+      tau2<-max(0, (Q-df)/(sum(vwts)-sum(vwts^2)/sum(vwts)))
+      if(is.null(mf$weights)){
+          if (method=="fixed"){
+              wt<-1/vars
+          } else {
+              wt<-1/(vars+tau2)
+          }
+      } else{
+          wt<-mf$weights
+      }
+      
+      summ<-sum(wt*mf$d)/sum(wt)
+      if (method=="fixed")
+          varsum<-sum(wt*wt*vars)/(sum(wt)^2)
+      else
+          varsum<-sum(wt*wt*(vars+tau2))/(sum(wt)^2)
   
-    if (is.null(mf$names)){
-	if (is.null(mf$d))
-	   mf$names<-seq(along=mf$d)
-	else
-	  mf$names<-names(mf$d)
-    }
-   mf$names<-as.character(mf$names)
-   method<-match.arg(method)
-   vars<-mf$se^2
-   tau2<-max(0,var(mf$d)-sum(vars)/NROW(mf))
-   if(is.null(mf$weights)){
-	if (method=="fixed"){
-   		wt<-1/vars
-	} else {
-		wt<-1/(vars+tau2)
-	}
-   } else
-	wt<-mf$weights
+      summtest<-summ/sqrt(varsum)
 
-  summ<-sum(wt*mf$d)/sum(wt)
-  if (method=="fixed")
-	varsum<-sum(wt*wt*vars)/(sum(wt)^2)
-  else
-	varsum<-sum(wt*wt*(vars+tau2))/(sum(wt)^2)
-  
-  summtest<-summ/sqrt(varsum)
-  heterog<-sum(((mf$d-summ)^2)/vars)
-  df<-length(vars)-1
-  rval<-list(effects=mf$d, stderrs=mf$se, summary=summ,se.summary=sqrt(varsum),
-	     test=c(summtest,1-pchisq(summtest^2,1)),
-	     het=c(heterog,df,1-pchisq(heterog,df)),
-	     call=match.call(), names=mf$names,tau2=tau2,
-	     variance.method=method, weights=wt, 
-	     weight.method=if(is.null(mf$weights)) method else "user",
-	     conf.level=conf.level,logscale=logscale)
-  class(rval)<-"meta.summaries"
-  rval
+      rval<-list(effects=mf$d, stderrs=mf$se, summary=summ,se.summary=sqrt(varsum),
+                 test=c(summtest,1-pchisq(summtest^2,1)),
+                 het=c(Q,df,1-pchisq(Q,df)),
+                 call=match.call(), names=mf$names,tau2=tau2,
+                 variance.method=method, weights=wt, 
+                 weight.method=if(is.null(mf$weights)) method else "user",
+                 conf.level=conf.level,logscale=logscale)
+      class(rval)<-"meta.summaries"
+      rval
 }
 
 summary.meta.summaries <- function( object ,conf.level=NULL, ...) {
@@ -581,6 +593,11 @@ metaplot <- function( mn, se, nn=NULL, labels=NULL, conf.level = .95,
 		                 0,
                       colors=meta.colors(),
 		      ... ) {
+
+    
+    nth<-function(x,i){
+        x[ (i-1) %% length(x) +1]
+    }
     ci.value <- -qnorm( ( 1 - conf.level ) / 2 )
     ok <- is.finite( mn + se )
     if ( is.null( xlim ) ) 
@@ -622,14 +639,15 @@ metaplot <- function( mn, se, nn=NULL, labels=NULL, conf.level = .95,
         lower <- exp( lower )
         upper <- exp( upper )
     }
+
     for ( i in 1:n ){
         if ( is.na( lower[i]+upper[i] ) ) 
             next
-        lines( c( lower[i], upper[i] ), c( -i, -i ), lwd = lwd, col=colors$lines,... )
+        lines( c( lower[i], upper[i] ), c( -i, -i ), lwd = lwd, col=nth(colors$lines,i),... )
     }
     if ( !is.null( labels ) )
-        text( rep( nxlim[1], n ), -( 1:n ), labels,..., col=colors$text,adj=0 )
-    if ( is.null( nn ) ) 
+        text( rep( nxlim[1], n ), -( 1:n ), labels,..., col=rep(colors$text,length.out=n),adj=0 )
+    if ( is.null( nn ) )  
         nn <- se ^ -2
     yscale <- 0.3 * boxsize / max( sqrt( nn ), na.rm = TRUE )
     if ( logeffect ) { 
@@ -647,7 +665,7 @@ metaplot <- function( mn, se, nn=NULL, labels=NULL, conf.level = .95,
     for ( i in 1:n ) {
         if ( !is.finite( mn[i] ) ) 
             next  
-     rect( xl[i], -yb[i], xr[i], -yt[i], col = colors$box,border=  colors$box)
+     rect( xl[i], -yb[i], xr[i], -yt[i], col = nth(colors$box,i),border=  nth(colors$box,i))
     }
     if ( !is.null( summn ) ) {
         if ( logeffect ) {
@@ -665,13 +683,13 @@ metaplot <- function( mn, se, nn=NULL, labels=NULL, conf.level = .95,
         yt <- n + 3 + sqrt( sumnn ) * yscale
         polygon( c( xl, x0, xr, x0 ), -c( y0, yt, y0, yb ),
     	         col = colors$summary, border = colors$summary )
-        text( nxlim[1], -y0, labels = summlabel, adj = 0,col=colors$text )
+        text( nxlim[1], -y0, labels = summlabel, adj = 0,col=nth(colors$text,n+1) )
     }
 }
 
 funnelplot<-function(x,...)
     UseMethod("funnelplot")
-
+    
 funnelplot.meta.MH<-function(x,...){
     funnelplot.default(x$logOR,x$selogOR,summ=x$logMH,...)
 }

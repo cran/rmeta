@@ -13,7 +13,7 @@
 \usage{
 meta.summaries(d, se, method=c("fixed", "random"), weights=NULL,
                logscale=FALSE, names=NULL, data=NULL,
-               conf.level=0.95, subset=NULL,na.action=na.fail)
+               conf.level=0.95, subset=NULL,na.action=get(getOption("na.action")))
 summary.meta.summaries(object,conf.level=NULL,\dots)
 plot.meta.summaries(x,summary=TRUE,summlabel="Summary",
                     conf.level=NULL,colors=meta.colors(),
@@ -31,7 +31,7 @@ plot.meta.summaries(x,summary=TRUE,summlabel="Summary",
   \item{conf.level}{level for confidence intervals }
   \item{subset}{Which studies to use}
   \item{na.action}{a function which indicates what should happen when
-    the data contain \code{NA}s.  Defaults to \code{\link{na.fail}}.}
+    the data contain \code{NA}s. }
   \item{x,object}{a \code{meta.summaries} object}
   \item{summary}{Plot the summary odds ratio?}
   \item{summlabel}{Label for the summary odds ratio}

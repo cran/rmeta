@@ -31,11 +31,13 @@ meta.colors(all.elements, box="black", lines="gray", summary="black",
 data(cochrane)
 steroid <- meta.MH(n.trt, n.ctrl, ev.trt, ev.ctrl,
                    names=name, data=cochrane)
+## Blue, to match the Cochrane logo
 plot(steroid, col=meta.colors("RoyalBlue"))
 data(catheter)
 e <- meta.DSL(n.trt, n.ctrl, inf.trt, inf.ctrl, data=catheter,
               names=Name, subset=c(13,6,3,12,4,11,1,14,8,10,2))
-## Angry fruit salad color scheme
-plot(e, colors=meta.colors(summary="green",lines="purple",box="orange"))
+## Truly awful colour scheme to illustrate flexibility
+plot(e, colors=meta.colors(summary="green",lines=c("purple","skyblue"),
+       box="red",zero="yellow",text=palette()))
 }
 \keyword{hplot}
