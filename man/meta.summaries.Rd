@@ -74,7 +74,7 @@ plot.meta.summaries(x,summary=TRUE,summlabel="Summary",
 data(catheter)
 b <- meta.DSL(n.trt, n.ctrl, col.trt, col.ctrl, data=catheter,
               names=Name, subset=c(13,6,5,3,12,4,11,1,8,10,2))
-d <- meta.summaries(b$logOR, b$selogOR, names=b$names,
+d <- meta.summaries(b$logs, b$selogs, names=b$names,
                     method="random", logscale=TRUE)
 }
 \keyword{htest}

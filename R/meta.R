@@ -1,14 +1,84 @@
 
-meta.MH <- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
+meta.cum<- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
 		      names = NULL, data = NULL, 
-		      subset = NULL, na.action = na.fail ) {
+		      subset = NULL, na.action = na.fail,
+			method=c("meta.MH","meta.DSL"),statistic="OR") {
     if (conf.level>1 & conf.level<100)
         conf.level<-conf.level/100
     if ( is.null( data ) ) 
         data <- sys.frame( sys.parent() )
     mf <- match.call()
     mf$data <- NULL 
+    mf$na.action<-NULL
     mf$subset <- NULL
+    mf$statistic<- NULL
+    mf$conf.level<-NULL
+    mf[[1]] <- as.name( "data.frame" )
+    mf <- eval( mf,data )
+    if ( !is.null( subset ) ) 
+        mf <- mf[subset,]
+    m<-NROW(mf)
+
+    method<-match.arg(method)     
+    fn<-get(method)
+    vals<-lapply(1:m,function(i) fn(ntrt,nctrl,ptrt,pctrl,data=mf,subset=1:i,
+				conf.level=conf.level,statistic=statistic))
+    if (method=="meta.DSL")
+        results<-sapply(vals,function(v) c(v$logDSL,v$selogDSL))
+    else
+	results<-sapply(vals,function(v) c(v$logMH,v$selogMH))
+    	rval<-list(summary=results[1,],se=results[2,],names=as.character(mf$names),
+		method=method,statistic=statistic,
+		total=results[[m]],call=match.call(),conf.level=conf.level)
+	class(rval)<-"meta.cum"
+	rval
+ }
+
+print.meta.cum<-function(x,...){
+	cat("Cumulative meta-analysis:\n")
+	print(x$call)
+}
+
+
+
+plot.meta.cum <- function( x,  conf.level=NULL,colors=meta.colors(),xlab=NULL,
+			summary.line=TRUE,summary.conf=FALSE,... ){
+    if (is.null(conf.level))
+        conf.level <- x$conf.level
+    if (conf.level>1 & conf.level<100)
+        conf.level<-conf.level/100
+    stats<-x$summary
+    ses<-x$se
+   if (x$statistic=="OR") {
+	if (is.null(xlab)) xlab<-"Odds Ratio"
+   } else {
+	if (is.null(xlab)) xlab<-"Relative Risk"
+  }
+	m<-length(stats)
+           metaplot( stats, ses, labels=x$names, logeffect = TRUE,colors=colors,xlab=xlab,... )
+	   if (summary.line) abline(v=exp(stats[m]),lty=3,col=colors$summary)
+	   if (summary.conf) {
+			z<-qnorm((1-conf.level)/2,s=ses[m])
+			abline(v=exp(stats[m]+z),lty=3,col=colors$line)
+			abline(v=exp(stats[m]-z),lty=3,col=colors$line)
+		}
+
+ }
+ 
+
+
+meta.MH <- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
+		      names = NULL, data = NULL, 
+		      subset = NULL, na.action = na.fail ,statistic="OR") {
+    if (conf.level>1 & conf.level<100)
+        conf.level<-conf.level/100
+    if ( is.null( data ) ) 
+        data <- sys.frame( sys.parent() )
+    mf <- match.call()
+    mf$data <- NULL 
+    mf$na.action<-NULL
+    mf$subset <- NULL
+    mf$statistic<- NULL
     mf[[1]] <- as.name( "data.frame" )
     mf <- eval( mf,data )
     if ( !is.null( subset ) ) 
@@ -19,12 +89,20 @@ meta.MH <- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
     C <- mf$ntrt - mf$ptrt
     D <- mf$nctrl - mf$pctrl
     logORs <- log( ( A * D ) / ( B * C ) )
+   logRRs <- log( A/(A+C))-log(B/(B+D))
     vars <- 1/A + 1/B + 1/C + 1/D
+    varRRs<- C/(A*(A+C))+D/(B*(B+D))
     Ti <- A + B + C + D
+
+
     P <- ( A + D ) / Ti
     Q <- ( B + C ) / Ti
     R <- A * D / Ti
     S <- B * C / Ti
+   
+    G<- A*(A+C)/Ti
+    H<- B*(B+D)/Ti
+
     logMH <- log( sum( R ) / sum( S ) )
     varMH <- sum( P * R ) / ( 2 * sum( R )^2 ) + 
     	     sum( P * S + Q * R ) / ( 2 * sum( R ) * sum( S ) ) + 
@@ -34,17 +112,36 @@ meta.MH <- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
     		      ( Ti * Ti * ( Ti - 1 ) 
     		    ) 
     	       )
+    ##stata manual pp486ff
+
+    logMHRR<-log(sum(G)/sum(H))
+    varMHRR<-(   sum( ((A+B)*(A+C)*(A+D)-A*B*Ti)/Ti^2)/ (sum(A*(A+C)/Ti)*sum(B*(B+D)/Ti)))
+   
     ok <- is.finite( logORs )
-    heterog <- sum( ( ( logORs[ok] - logMH ) ^ 2 ) / vars[ok] )
-    df <- sum( ok ) - 1
-    rval <- list( logOR = logORs, selogOR = sqrt( vars ), 
+    okRR <- is.finite(logRRs) 
+   heterog <- sum( ( ( logORs[ok] - logMH ) ^ 2 ) / vars[ok] )
+    heterogRR <- sum( ( ( logRRs[ok] - logMHRR ) ^ 2 ) / varRRs[ok] )
+   df <- sum( ok ) - 1
+    if (statistic=="OR") { 
+         rval <- list( logOR = logORs, selogOR = sqrt( vars ), 
     		  logMH = logMH, selogMH = sqrt( varMH ), 
     		  MHtest = c( MHchisq, 1 - pchisq( MHchisq, 1 ) ), 
     		  het = c( heterog, df, 1 - pchisq( heterog, df ) ),
     		  call = match.call(), names = as.character(mf$names),
-    		  conf.level = conf.level )
-    class( rval ) <- "meta.MH"
-    rval
+    		  conf.level = conf.level, statistic="OR" )
+ 	class( rval ) <- c("meta.MH.OR","meta.MH")
+
+   } else {
+        rval <- list( logRR = logRRs, selogRR = sqrt( vars ), 
+    		  logMH = logMHRR, selogMH = sqrt( varMHRR ), 
+    		  MHtest = c( MHchisq, 1 - pchisq( MHchisq, 1 ) ), 
+    		  het = c( heterogRR, df, 1 - pchisq( heterogRR, df ) ),
+    		  call = match.call(), names = as.character(mf$names),
+    		  conf.level = conf.level, statistic="RR" )
+ 	class( rval ) <- c("meta.MH.RR","meta.MH")
+
+ }
+       rval
 }
 
 # Print out the output of meta.MH function.
@@ -54,10 +151,9 @@ print.meta.MH <- function( x, ... ) {
     print( x$call )
     conf.level <- x$conf.level
     ci.value <- -qnorm( ( 1 - conf.level ) / 2 )
-    #lower <- mn - ci.value * se
-    #upper <- mn + ci.value * se
     ci <- exp( x$logMH + c( -ci.value, 0, ci.value ) * x$selogMH )
-    cat( paste( "Mantel-Haensel OR = ", round( ci[2],2 ), "    ",
+    label<-paste("Mantel-Haenszel",x$statistic,"=")
+    cat( paste( label, round( ci[2],2 ), "    ",
     	        conf.level * 100, "% CI ( ", round( ci[1],2 ), 
     	        ", ", round( ci[3],2 ), " )\n", sep = "" 
     	      ) 
@@ -69,23 +165,32 @@ print.meta.MH <- function( x, ... ) {
 
 # Summarise meta.MH function, same with print.meta.MH, but with odds
 # ratios for each variable.
-summary.meta.MH <- function( object ,conf.level=NULL, ...) {
+
+summary.meta.MH <- function( object ,conf.level=NULL,...) {
     if (is.null(conf.level))
         conf.level <- object$conf.level
     if (conf.level>1 & conf.level<100)
         conf.level<-conf.level/100
     ci.value <- -qnorm( ( 1 - conf.level ) / 2 )
+   if (object$statistic=="OR"){
     m <- exp( outer( object$selogOR, c( 0, -ci.value, ci.value ), "*" ) +
               cbind( object$logOR, object$logOR, object$logOR ) 
             )
     dimnames( m ) <- list( as.character( object$names ),
                           c( "OR", "(lower ", paste(100*conf.level,"% upper)",sep=""))  )
-    rval <- list( ors = m, call = object$call, 
+    } else {
+	m <- exp( outer( object$selogRR, c( 0, -ci.value, ci.value ), "*" ) +
+           	  cbind( object$logRR, object$logRR, object$logRR ) 
+        	    )
+   	 dimnames( m ) <- list( as.character( object$names ),
+                          c( "RR", "(lower ", paste(100*conf.level,"% upper)",sep=""))  )
+   }
+    rval <- list( stats = m, call = object$call, 
     		  MHci = exp( object$logMH + c( -ci.value, 0, ci.value ) *
     		              object$selogMH 
     			    ),
     		  het = object$het,
-                  conf.level=conf.level
+                  conf.level=conf.level, statistic=object$statistic
     	        )
     class( rval ) <- "summary.meta.MH"
     rval
@@ -97,10 +202,11 @@ print.summary.meta.MH <- function( x, ... ) {
     cat( "Call: " )
     print( x$call )
     cat( "------------------------------------\n" )
-    print( round( x$ors,2 ) )
+    print( round( x$stats,2 ) )
     cat( "------------------------------------\n" )
     conf.level <- x$conf.level
-    cat( paste( "Mantel-Haensel OR = ", round( x$MHci[2], 2 ), " ",
+    label<-paste("Mantel-Haenszel",x$statistic,"=")
+    cat( paste( label, round( x$MHci[2], 2 ), " ",
     	        conf.level*100, "% CI ( ", round( x$MHci[1],2 ), ",", 
     	        round( x$MHci[3],2 ), " )\n", sep="" 
     	      ) 
@@ -124,25 +230,34 @@ meta.colors<-function(all.elements,box="black",lines="gray",summary="black",zero
 
 
 # Plot the Odds Ratio of meta.MH
-plot.meta.MH <- function( x, summary = TRUE, summlabel = "Summary", conf.level=NULL,colors=meta.colors(),... ){
+plot.meta.MH <- function( x, summary = TRUE, summlabel = "Summary", conf.level=NULL,colors=meta.colors(),xlab=NULL,... ){
     if (is.null(conf.level))
         conf.level <- x$conf.level
     if (conf.level>1 & conf.level<100)
         conf.level<-conf.level/100
- 
+    if (x$statistic=="OR") {
+	stats<-x$logOR
+	ses<-x$selogOR
+	if (is.null(xlab)) xlab<-"Odds Ratio"
+    } else {
+        stats<-x$logRR
+	ses<-x$selogRR
+	if (is.null(xlab)) xlab<-"Relative Risk"
+    }
+
     if ( summary )
-        metaplot( x$logOR, x$selogOR, labels=x$names,
+        metaplot( stats,ses, labels=x$names,
         	  summn = x$logMH, sumse = x$selogMH, 
         	  conf.level = conf.level, sumnn = x$selogMH ^ ( -2 ),
-        	  summlabel = summlabel, logeffect = TRUE,colors=colors,... )
+        	  summlabel = summlabel, logeffect = TRUE,colors=colors,xlab=xlab,... )
     else 
-       metaplot( x$logOR, x$selogOR, labels=x$names, logeffect = TRUE,colors=colors,... )
+       metaplot(stats,ses, labels=x$names, logeffect = TRUE,colors=colors,xlab=xlab,... )
  }
  
 # Meta Analysis using DerSimonian-Laird Method.
 meta.DSL <- function( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
 		      names = NULL, data = NULL,
-		      subset = NULL, na.action = na.fail ) {
+		      subset = NULL, na.action = na.fail,statistic="OR") {
     if (conf.level>1 & conf.level<100)
         conf.level<-conf.level/100
     if ( is.null( data ) ) 
@@ -150,6 +265,8 @@ meta.DSL <- function( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
     mf <- match.call()
     mf$data <- NULL 
     mf$subset <- NULL
+   mf$na.action<-NULL
+    mf$statistic<-NULL
     mf[[1]] <- as.name( "data.frame" )
     mf <- eval( mf,data )
     if ( !is.null( subset ) ) 
@@ -160,25 +277,37 @@ meta.DSL <- function( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
     C <- mf$ntrt - mf$ptrt
     D <- mf$nctrl - mf$pctrl
     logORs <- log( ( A * D ) / ( B * C ) )
-    ok <- is.finite( logORs )
+    logRRs <- log( A/(A+C))-log(B/(B+D))
+    varORs <- 1/A + 1/B + 1/C + 1/D
+    varRRs<- C/(A*(A+C))+D/(B*(B+D))
+    if(statistic=="OR"){
+        ok <- is.finite( logORs )
+        logs<-logORs
+       vars<-varORs
+    } else    {
+       ok <- is.finite(logRRs) 
+      vars<-varRRs
+      logs<-logRRs
+   }
+   df <- sum( ok ) - 1
     if ( any( !ok ) )
-        warning( "Studies with 0/Inf odds ratio omitted" )
-    vars <- 1/A + 1/B + 1/C + 1/D
-    tau2 <- max( 0, var( logORs[ok] ) - sum( vars[ok] ) / ( length( ok )-1 ) )
+        warning( "Studies with 0/Inf statistic omitted" )
+
+    tau2 <- max( 0, var( logs[ok] ) - sum( vars[ok] ) / ( length( ok ) ) )
     wts <- 1 / ( vars + tau2 )
-    logDSL <- sum( wts[ok] * logORs[ok] ) / sum( wts[ok] )
+    logDSL <- sum( wts[ok] * logs[ok] ) / sum( wts[ok] )
     varDSL <- 1 / sum( wts[ok] )
     summary.test <- logDSL / sqrt( varDSL )
-    heterog <- sum( ( ( logORs[ok] - logDSL )^2 ) / vars[ok] )
+    heterog <- sum( ( ( logs[ok] - logDSL )^2 ) / vars[ok] )
     df <- sum( ok ) - 1
-    rval <- list( logOR = logORs, selogOR = sqrt( vars ), 
+    rval <- list( logs = logs, selogs = sqrt( vars ), 
     		  logDSL = logDSL, selogDSL = sqrt( varDSL ), 
     		  test = c( summary.test,
     		   	    1 - pchisq( summary.test ^ 2, 1 ) ), 
     		  het = c( heterog, df, 1 - pchisq( heterog, df ) ),
                   call = match.call(),
                   names = as.character(mf$names), conf.level = conf.level,
-                  omitted = !ok, tau2=tau2 )
+                  omitted = !ok, tau2=tau2, statistic=statistic)
     class( rval ) <- "meta.DSL"
     rval
 }
@@ -191,7 +320,7 @@ print.meta.DSL <- function( x, ... ){
     cat( "Call: " )
     print( x$call )
     ci <- exp( x$logDSL + c( -ci.value, 0, ci.value ) * x$selogDSL )
-    cat( paste( "Summary OR = ", round( ci[2],2 ), "    ",
+    cat( paste( "Summary ",x$statistic,"= ", round( ci[2],2 ), "    ",
     	        conf.level * 100, "% CI ( ",round( ci[1],2 ), ", ",
     	        round( ci[3],2 )," )\n", sep="" ) )
     cat( paste( "Estimated random effects variance:",round( x$tau2,2 ),"\n" ) )
@@ -205,17 +334,17 @@ summary.meta.DSL <- function( object,conf.level=NULL, ... ){
     if (conf.level>1 & conf.level<100)
         conf.level<-conf.level/100
     ci.value <- -qnorm( ( 1 - conf.level ) / 2 )
-    m <- exp( outer( object$selogOR, c( 0,-ci.value,ci.value ), "*" ) +
-    		     cbind( object$logOR, object$logOR, object$logOR ) )
+    m <- exp( outer( object$selogs, c( 0,-ci.value,ci.value ), "*" ) +
+    		     cbind( object$logs, object$logs, object$logs ) )
     dimnames( m ) <- list( as.character( object$names ),
-                          c( "OR", "(lower ", paste(100*conf.level,"% upper)",sep=""))  )
+                          c( object$statistic, "(lower ", paste(100*conf.level,"% upper)",sep=""))  )
     rval <- list( ors = m, call = object$call, 
                   ci = exp( object$logDSL + c( -ci.value, 0, ci.value ) *
                 	    object$selogDSL ),
                   het = object$het, 
                   omitted = as.character( object$names )[object$omitted],
                   conf.level=conf.level,
-                  tau2 = object$tau2 )
+                  tau2 = object$tau2,statistic=object$statistic )
     class( rval ) <- "summary.meta.DSL"
     rval
 }
@@ -229,7 +358,7 @@ print.summary.meta.DSL <- function( x, ... ) {
     cat( "------------------------------------\n" )
     print( round( x$ors,2 ) )
     cat( "------------------------------------\n" )
-    cat( paste( "Summary OR = ",round( x$ci[2],2 ), "  ",
+    cat( paste( "Summary",x$statistic,"= ",round( x$ci[2],2 ), "  ",
     		conf.level * 100, "% CI ( ",round( x$ci[1],2 ), ",",
     		round( x$ci[3],2 )," )\n",sep="" ) )
     cat( paste( "Test for heterogeneity: X^2( ",x$het[2]," ) = ",
@@ -244,19 +373,25 @@ print.summary.meta.DSL <- function( x, ... ) {
 }
 
 # Plot the Odds Ratio of meta.DSL
-plot.meta.DSL <- function( x,summary=TRUE,summlabel="Summary",conf.level=NULL,colors=meta.colors(),... ){
+plot.meta.DSL <- function( x,summary=TRUE,summlabel="Summary",conf.level=NULL,colors=meta.colors(),xlab=NULL,... ){
     if (is.null(conf.level))
         conf.level <- x$conf.level
     if (conf.level>1 & conf.level<100)
         conf.level<-conf.level/100
-    if ( summary )
-        metaplot( x$logOR, x$selogOR, conf.level = conf.level,
+   if (is.null(xlab)){
+	if (x$statistic=="OR") 
+		xlab<-"Odds Ratio"
+	else
+		xlab<-"Relative Risk"
+	}
+   if ( summary )
+        metaplot( x$logs, x$selogs, conf.level = conf.level,
                  labels = x$names, summn = x$logDSL,
             	  sumse = x$selogDSL, sumnn = x$selogDSL^( -2 ),
-            	  summlabel = summlabel, logeffect = TRUE,colors=colors,... )
+            	  summlabel = summlabel, logeffect = TRUE,colors=colors,xlab=xlab,... )
     else 
-        metaplot( x$logOR, x$selogOR, labels = x$names,
-        	  logeffect = TRUE,colors=colors,conf.level=conf.level,... )
+        metaplot( x$logs, x$selogs, labels = x$names,
+        	  logeffect = TRUE,colors=colors,conf.level=conf.level,xlab=xlab,... )
  }
  
 
@@ -394,7 +529,13 @@ print.meta.summaries<-function(x, ...){
    cat("Call: ")
    print(x$call)
    ci<-x$summary+c(-ci.value,0,ci.value)*x$se.summary
-   cat(paste("Summary effect=",signif(ci[2],3), "   ",
+   if (x$logscale) {
+       ci<-exp(ci)
+       label<-"exp(summary effect)="
+   }
+   else
+       label<-"Summary effect="
+   cat(paste(label,signif(ci[2],3), "   ",
 	conf.level*100,"% CI (",signif(ci[1],3),", ",signif(ci[3],3),
 	")\n",sep=""))
    cat("Estimated heterogeneity variance:",signif(x$tau2,2)," p=",round(x$het[3],3),"\n")

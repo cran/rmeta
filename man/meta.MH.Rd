@@ -2,10 +2,10 @@
 \title{Fixed effects (Mantel-Haenszel) meta-analysis}
 \usage{
 meta.MH(ntrt, nctrl, ptrt, pctrl, conf.level=0.95,
-        names=NULL, data=NULL, subset=NULL, na.action = na.fail)
+        names=NULL, data=NULL, subset=NULL, na.action = na.fail,statistic="OR")
 summary.meta.MH(object, conf.level=NULL, \dots)
 plot.meta.MH(x, summary=TRUE, summlabel="Summary",
-             conf.level=NULL, colors=meta.colors(), \dots)
+             conf.level=NULL, colors=meta.colors(),xlab=NULL, \dots)
 }
 \alias{meta.MH}
 \alias{summary.meta.MH}
@@ -23,18 +23,22 @@ plot.meta.MH(x, summary=TRUE, summlabel="Summary",
   \item{subset}{subset of studies to include}
   \item{na.action}{a function which indicates what should happen when
     the data contain \code{NA}s.  Defaults to \code{\link{na.fail}}.}
+  \item{statistic}{"OR" for odds ratio, "RR" for relative risk}
   \item{x,object}{a \code{meta.MH} object}
   \item{summary}{Plot the summary odds ratio?}
   \item{summlabel}{Label for the summary odds ratio}
   \item{conf.level}{Coverage for confidence intervals}
   \item{colors}{see \code{\link{meta.colors}}}
+ \item{xlab}{x-axis label, default is based on \code{statistic}}
   \item{\dots}{further arguments to be passed to or from methods.}
 }
+
 \description{
-Computes the individual odds ratios, the Mantel-Haenszel summary odds
-ratio, and Woolf's test for heterogeneity. The \code{print} method gives
-the summary and test for heterogeneity; the \code{summary} method also
-gives all the individual odds ratios and confidence intervals.
+  Computes the individual odds ratio or relative risk, the
+  Mantel-Haenszel summary, and Woolf's test for heterogeneity. The
+  \code{print} method gives the summary and test for heterogeneity; the
+  \code{summary} method also gives all the individual odds ratios and
+  confidence intervals.
 
 The \code{plot} method draws a standard meta-analysis plot. The
 confidence interval for each study is given by a horizontal line, and
@@ -45,18 +49,8 @@ confidence limits and width inversely proportional to its standard
 error.
 }
 \value{
-  An object of class \code{meta.MH} with \code{print}, \code{plot} and
-  \code{summary} methods and components:
-  \item{logOR}{log odds ratios for individual studies}
-  \item{selogOR}{standard errors for log odds ratios}
-  \item{logMH}{log of Mantel-Haenszel summary odds ratio}
-  \item{selogMH}{standard of summary log odds ratio}
-  \item{MHtest}{Mantel-Haenszel chisquare and p-value testing the
-    hypothesis that the summary odds ratio is 1}
-  \item{het}{Woolf's chisquare for heterogeneity, its degrees of freedom
-    and p-value}
-  \item{call}{A copy of the function call}
-  \item{names}{A copy of the vector of names}
+  An object of class \code{meta.MH} with \code{print}, \code{plot}, \code{funnelplot} and
+  \code{summary} methods.
 }
 \references{}
 \author{Thomas Lumley}
@@ -67,7 +61,7 @@ error.
   estimated variances.  The Mantel-Haenszel method is superior if there
   are trials with small numbers of events (less than 5 or so in either group)}
 
-\seealso{\code{\link{plot}},\code{\link{par}},\code{\link{meta.DSL}} }
+\seealso{\code{\link{plot}},\code{\link{par}},\code{\link{meta.DSL}},\code{\link{funnelplot}} }
 
 \examples{
 data(catheter)

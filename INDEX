@@ -4,6 +4,7 @@ funnelplot              Funnel plot for publication bias
 meta.DSL                Random effects (DerSimonian-Laird)
                         meta-analysis
 meta.MH                 Fixed effects (Mantel-Haenszel) meta-analysis
+meta.cum		Cumulative meta-analysis
 meta.colors             Control colours in meta-analysis plot
 meta.summaries          Meta-analysis based on effect estimates
-metaplot                Meta-analysis plot
+metaplot                Confidence interval plot
