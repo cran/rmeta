@@ -1,7 +1,7 @@
 \name{metaplot}
 \alias{metaplot}
 %- Also NEED an `\alias' for EACH other topic documented here.
-\title{Meta-analysis plot}
+\title{Meta-analysis plot (forest plot)}
 \description{
   Plot confidence intervals with boxes indicating the sample
   size/precision and optionally a diamond indicating a summary

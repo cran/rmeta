@@ -1,7 +1,8 @@
 
 
  
-meta.colors<-function(all.elements,box="black",lines="gray",summary="black",zero="lightgray",mirror="lightblue",text="black", axes="black",background=NA){
+meta.colors<-function(all.elements,box="black",lines="gray",summary="black",zero="lightgray",
+                      mirror="lightblue",text="black", axes="black",background=NA){
 
     if (missing(all.elements)){
         return(list(box=box, lines=lines, summary=summary,
@@ -56,6 +57,8 @@ metaplot <- function( mn, se, nn=NULL, labels=NULL, conf.level = .95,
             nxlim[1] <- nxlim[1] / sqrt( nxlim[2] / nxlim[1] )
         else
           nxlim[1] <- nxlim[1] - 0.5 * ( nxlim[2] - nxlim[1] )
+
+        labels<-as.character(labels)
         
     }
     par( xaxt = "n",yaxt = "n", bg=colors$background )

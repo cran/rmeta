@@ -181,13 +181,13 @@ meta.MH <- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
     if ( !is.null( subset ) ) 
         mf <- mf[subset,]
     mf <- na.action( mf )
-    A <- mf$ptrt
-    B <- mf$pctrl
-    C <- mf$ntrt - mf$ptrt
-    D <- mf$nctrl - mf$pctrl
+    A <- as.numeric(mf$ptrt) ## integers would overflow
+    B <- as.numeric(mf$pctrl)
+    C <- as.numeric(mf$ntrt - mf$ptrt)
+    D <- as.numeric(mf$nctrl - mf$pctrl)
     logORs <- log( ( A * D ) / ( B * C ) )
-   logRRs <- log( A/(A+C))-log(B/(B+D))
-    vars <- 1/A + 1/B + 1/C + 1/D
+    logRRs <- log( A/(A+C))-log(B/(B+D))
+    varORs <- 1/A + 1/B + 1/C + 1/D
     varRRs<- C/(A*(A+C))+D/(B*(B+D))
     Ti <- A + B + C + D
 
@@ -216,9 +216,10 @@ meta.MH <- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
    
     ok <- is.finite( logORs )
     okRR <- is.finite(logRRs) 
-   heterog <- sum( ( ( logORs[ok] - logMH ) ^ 2 ) / vars[ok] )
+    heterog <- sum( ( ( logORs[ok] - logMH ) ^ 2 ) / varORs[ok] )
     heterogRR <- sum( ( ( logRRs[ok] - logMHRR ) ^ 2 ) / varRRs[ok] )
-   df <- sum( ok ) - 1
+    df <- sum( ok ) - 1
+    vars<-switch(statistic, OR=varORs, RR=varRRs)
     if (statistic=="OR") { 
          rval <- list( logOR = logORs, selogOR = sqrt( vars ), 
     		  logMH = logMH, selogMH = sqrt( varMH ), 
@@ -274,13 +275,15 @@ summary.meta.MH <- function( object ,conf.level=NULL,...) {
               cbind( object$logOR, object$logOR, object$logOR ) 
             )
     dimnames( m ) <- list( as.character( object$names ),
-                          c( "OR", "(lower ", paste(100*conf.level,"% upper)",sep=""))  )
+                          c( "OR", "(lower ", paste(100*conf.level,"% upper)",
+                                                    sep=""))  )
     } else {
 	m <- exp( outer( object$selogRR, c( 0, -ci.value, ci.value ), "*" ) +
            	  cbind( object$logRR, object$logRR, object$logRR ) 
         	    )
    	 dimnames( m ) <- list( as.character( object$names ),
-                          c( "RR", "(lower ", paste(100*conf.level,"% upper)",sep=""))  )
+                          c( "RR", "(lower ", paste(100*conf.level,"% upper)",
+                                                    sep=""))  )
    }
     rval <- list( stats = m, call = object$call, 
     		  MHci = exp( object$logMH + c( -ci.value, 0, ci.value ) *
@@ -333,78 +336,80 @@ plot.meta.MH <- function( x, summary = TRUE, summlabel = "Summary", conf.level=N
     }
 
     if ( summary )
-        metaplot( stats,ses, labels=x$names,
-        	  summn = x$logMH, sumse = x$selogMH, 
-        	  conf.level = conf.level, sumnn = x$selogMH ^ ( -2 ),
-        	  summlabel = summlabel, logeffect = TRUE,colors=colors,xlab=xlab,... )
+      metaplot( stats,ses, labels=x$names,
+               summn = x$logMH, sumse = x$selogMH, 
+               conf.level = conf.level, sumnn = x$selogMH ^ ( -2 ),
+               summlabel = summlabel, logeffect = TRUE,colors=colors,
+               xlab=xlab,... )
     else 
-       metaplot(stats,ses, labels=x$names, logeffect = TRUE,colors=colors,xlab=xlab,... )
- }
+      metaplot(stats,ses, labels=x$names, logeffect = TRUE,
+               colors=colors,xlab=xlab,... )
+  }
  
 # Meta Analysis using DerSimonian-Laird Method.
 meta.DSL <- function( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
-		      names = NULL, data = NULL,
-		      subset = NULL, na.action = na.fail,statistic="OR") {
-    if (conf.level>1 & conf.level<100)
-        conf.level<-conf.level/100
-    if ( is.null( data ) ) 
-        data <- sys.frame( sys.parent() )
-    mf <- match.call()
-    mf$data <- NULL 
-    mf$subset <- NULL
-   mf$na.action<-NULL
-    mf$statistic<-NULL
-    mf[[1]] <- as.name( "data.frame" )
-    mf <- eval( mf,data )
-    if ( !is.null( subset ) ) 
+                     names = NULL, data = NULL,
+                     subset = NULL, na.action = na.fail,statistic="OR") {
+  if (conf.level>1 & conf.level<100)
+    conf.level<-conf.level/100
+  if ( is.null( data ) ) 
+    data <- sys.frame( sys.parent() )
+  mf <- match.call()
+  mf$data <- NULL 
+  mf$subset <- NULL
+  mf$na.action<-NULL
+  mf$statistic<-NULL
+  mf[[1]] <- as.name( "data.frame" )
+  mf <- eval( mf,data )
+  if ( !is.null( subset ) ) 
         mf <- mf[subset,]
-    mf <- na.action( mf )
-    A <- mf$ptrt
-    B <- mf$pctrl
-    C <- mf$ntrt - mf$ptrt
-    D <- mf$nctrl - mf$pctrl
-    logORs <- log( ( A * D ) / ( B * C ) )
-    logRRs <- log( A/(A+C))-log(B/(B+D))
-    varORs <- 1/A + 1/B + 1/C + 1/D
-    varRRs<- C/(A*(A+C))+D/(B*(B+D))
-    if(statistic=="OR"){
-        ok <- is.finite( logORs )
-        logs<-logORs
-       vars<-varORs
-    } else    {
-       ok <- is.finite(logRRs) 
-      vars<-varRRs
-      logs<-logRRs
-   }
-   df <- sum( ok ) - 1
-    if ( any( !ok ) )
-        warning( "Studies with 0/Inf statistic omitted" )
-    ## Nick Barrowman points out this is wrong (or at least non-standard)
-    ## tau2 <- max( 0, var( logs[ok] ) - sum( vars[ok] ) / ( length( ok ) ) )
-    ## wts <- 1 / ( vars + tau2 )
-
-    vwts<-1/vars
-    logpooled<-sum(vwts[ok]*logs[ok])/sum(vwts[ok])
-    heterog <- sum( ( ( logs[ok] - logpooled )^2 ) / vars[ok] )    
-    tau2<- max(0, (heterog-df)/(sum(vwts[ok])-sum(vwts[ok]^2)/sum(vwts[ok])))
-
-    wts<-1/(vars+tau2)
-    logDSL <- sum( wts[ok] * logs[ok] ) / sum( wts[ok] )
-    varDSL <- 1 / sum( wts[ok] )
-
-    summary.test <- logDSL / sqrt( varDSL )
-
-
-    rval <- list( logs = logs, selogs = sqrt( vars ), 
-    		  logDSL = logDSL, selogDSL = sqrt( varDSL ), 
-    		  test = c( summary.test,
-    		   	    1 - pchisq( summary.test ^ 2, 1 ) ), 
-    		  het = c( heterog, df, 1 - pchisq( heterog, df ) ),
-                  call = match.call(),
-                  names = as.character(mf$names), conf.level = conf.level,
-                  omitted = !ok, tau2=tau2, statistic=statistic)
-    class( rval ) <- "meta.DSL"
-    rval
+  mf <- na.action( mf )
+  A <- as.numeric(mf$ptrt) ## integers might overflow
+  B <- as.numeric(mf$pctrl)
+  C <- as.numeric(mf$ntrt - mf$ptrt)
+  D <- as.numeric(mf$nctrl - mf$pctrl)
+  logORs <- log( ( A * D ) / ( B * C ) )
+  logRRs <- log( A/(A+C))-log(B/(B+D))
+  varORs <- 1/A + 1/B + 1/C + 1/D
+  varRRs<- C/(A*(A+C))+D/(B*(B+D))
+  if(statistic=="OR"){
+    ok <- is.finite( logORs )
+    logs<-logORs
+    vars<-varORs
+  } else    {
+    ok <- is.finite(logRRs) 
+    vars<-varRRs
+    logs<-logRRs
+  }
+  df <- sum( ok ) - 1
+  if ( any( !ok ) )
+    warning( "Studies with 0/Inf statistic omitted" )
+  ## Nick Barrowman points out this is wrong (or at least non-standard)
+  ## tau2 <- max( 0, var( logs[ok] ) - sum( vars[ok] ) / ( length( ok ) ) )
+  ## wts <- 1 / ( vars + tau2 )
+  
+  vwts<-1/vars
+  logpooled<-sum(vwts[ok]*logs[ok])/sum(vwts[ok])
+  heterog <- sum( ( ( logs[ok] - logpooled )^2 ) / vars[ok] )    
+  tau2<- max(0, (heterog-df)/(sum(vwts[ok])-sum(vwts[ok]^2)/sum(vwts[ok])))
+  
+  wts<-1/(vars+tau2)
+  logDSL <- sum( wts[ok] * logs[ok] ) / sum( wts[ok] )
+  varDSL <- 1 / sum( wts[ok] )
+  
+  summary.test <- logDSL / sqrt( varDSL )
+  
+  
+  rval <- list( logs = logs, selogs = sqrt( vars ), 
+               logDSL = logDSL, selogDSL = sqrt( varDSL ), 
+               test = c( summary.test,
+                 1 - pchisq( summary.test ^ 2, 1 ) ), 
+               het = c( heterog, df, 1 - pchisq( heterog, df ) ),
+               call = match.call(),
+               names = as.character(mf$names), conf.level = conf.level,
+               omitted = !ok, tau2=tau2, statistic=statistic)
+  class( rval ) <- "meta.DSL"
+  rval
 }
 
 # Print out the output of meta.DSL function.
@@ -432,70 +437,74 @@ summary.meta.DSL <- function( object,conf.level=NULL, ... ){
     m <- exp( outer( object$selogs, c( 0,-ci.value,ci.value ), "*" ) +
     		     cbind( object$logs, object$logs, object$logs ) )
     dimnames( m ) <- list( as.character( object$names ),
-                          c( object$statistic, "(lower ", paste(100*conf.level,"% upper)",sep=""))  )
+                          c( object$statistic, "(lower ",
+                            paste(100*conf.level,"% upper)",sep=""))  )
     rval <- list( ors = m, call = object$call, 
-                  ci = exp( object$logDSL + c( -ci.value, 0, ci.value ) *
-                	    object$selogDSL ),
-                  het = object$het, 
-                  omitted = as.character( object$names )[object$omitted],
-                  conf.level=conf.level,
-                  tau2 = object$tau2,statistic=object$statistic )
+                 ci = exp( object$logDSL + c( -ci.value, 0, ci.value ) *
+                   object$selogDSL ),
+                 het = object$het, 
+                 omitted = as.character( object$names )[object$omitted],
+                 conf.level=conf.level,
+                 tau2 = object$tau2,statistic=object$statistic )
     class( rval ) <- "summary.meta.DSL"
     rval
-}
+  }
 
-# Print out the summarised meta.MH function.
+## Print out the summarised meta.MH function.
 print.summary.meta.DSL <- function( x, ... ) {
-    conf.level <- x$conf.level
-    cat( "Random effects ( DerSimonian-Laird ) meta-analysis\n" )
-    cat( "Call: " )
-    print( x$call )
-    cat( "------------------------------------\n" )
-    print( round( x$ors,2 ) )
-    cat( "------------------------------------\n" )
-    cat( paste( "Summary",x$statistic,"= ",round( x$ci[2],2 ), "  ",
-    		conf.level * 100, "% CI ( ",round( x$ci[1],2 ), ",",
-    		round( x$ci[3],2 )," )\n",sep="" ) )
-    cat( paste( "Test for heterogeneity: X^2( ",x$het[2]," ) = ",
-    		round( x$het[1],2 ),
-    		" ( p-value ", round( x$het[3],4 ), " )\n", sep="" ) )
-    cat( paste( "Estimated random effects variance:",
-    		round( x$tau2,2 ), "\n" ) )
-    if ( length( x$omitted )>0 ){
-        cat( paste( "( ", length( x$omitted ),
-    		    "studies with zero or infinite odds ratio omitted )\n" ) )
-    }
+  conf.level <- x$conf.level
+  cat( "Random effects ( DerSimonian-Laird ) meta-analysis\n" )
+  cat( "Call: " )
+  print( x$call )
+  cat( "------------------------------------\n" )
+  print( round( x$ors,2 ) )
+  cat( "------------------------------------\n" )
+  cat( paste( "Summary",x$statistic,"= ",round( x$ci[2],2 ), "  ",
+             conf.level * 100, "% CI ( ",round( x$ci[1],2 ), ",",
+             round( x$ci[3],2 )," )\n",sep="" ) )
+  cat( paste( "Test for heterogeneity: X^2( ",x$het[2]," ) = ",
+             round( x$het[1],2 ),
+             " ( p-value ", round( x$het[3],4 ), " )\n", sep="" ) )
+  cat( paste( "Estimated random effects variance:",
+             round( x$tau2,2 ), "\n" ) )
+  if ( length( x$omitted )>0 ){
+    cat( paste( "( ", length( x$omitted ),
+               "studies with zero or infinite odds ratio omitted )\n" ) )
+  }
 }
 
 # Plot the Odds Ratio of meta.DSL
-plot.meta.DSL <- function( x,summary=TRUE,summlabel="Summary",conf.level=NULL,colors=meta.colors(),xlab=NULL,... ){
-    if (is.null(conf.level))
-        conf.level <- x$conf.level
-    if (conf.level>1 & conf.level<100)
-        conf.level<-conf.level/100
-   if (is.null(xlab)){
-	if (x$statistic=="OR") 
-		xlab<-"Odds Ratio"
-	else
-		xlab<-"Relative Risk"
-	}
-   if ( summary )
-        metaplot( x$logs, x$selogs, conf.level = conf.level,
-                 labels = x$names, summn = x$logDSL,
-            	  sumse = x$selogDSL, sumnn = x$selogDSL^( -2 ),
-            	  summlabel = summlabel, logeffect = TRUE,colors=colors,xlab=xlab,... )
-    else 
-        metaplot( x$logs, x$selogs, labels = x$names,
-        	  logeffect = TRUE,colors=colors,conf.level=conf.level,xlab=xlab,... )
- }
- 
+plot.meta.DSL <- function( x,summary=TRUE,summlabel="Summary",
+                          conf.level=NULL,colors=meta.colors(),xlab=NULL,... ){
+  if (is.null(conf.level))
+    conf.level <- x$conf.level
+  if (conf.level>1 & conf.level<100)
+    conf.level<-conf.level/100
+  if (is.null(xlab)){
+    if (x$statistic=="OR") 
+      xlab<-"Odds Ratio"
+    else
+      xlab<-"Relative Risk"
+  }
+  if ( summary )
+    metaplot( x$logs, x$selogs, conf.level = conf.level,
+             labels = x$names, summn = x$logDSL,
+             sumse = x$selogDSL, sumnn = x$selogDSL^( -2 ),
+             summlabel = summlabel, logeffect = TRUE,colors=colors,
+             xlab=xlab,... )
+  else 
+    metaplot( x$logs, x$selogs, labels = x$names,
+             logeffect = TRUE,colors=colors,conf.level=conf.level,
+             xlab=xlab,... )
+}
+
 
 meta.summaries<-function(d,se,method=c("fixed","random"),
-			weights=NULL,logscale=FALSE,names=NULL,data=NULL,
-			conf.level=.95,subset=NULL,na.action=na.fail)
+                         weights=NULL,logscale=FALSE,names=NULL,data=NULL,
+                         conf.level=.95,subset=NULL,na.action=na.fail)
 {
-      if (conf.level>1 & conf.level<100)
-        conf.level<-conf.level/100
+  if (conf.level>1 & conf.level<100)
+    conf.level<-conf.level/100
     if ( is.null( data ) ) 
         data <- sys.frame( sys.parent() )
     mf <- match.call()
@@ -515,26 +524,26 @@ meta.summaries<-function(d,se,method=c("fixed","random"),
 	else
 	  mf$names<-names(mf$d)
     }
-   mf$names<-as.character(mf$names)
-   method<-match.arg(method)
-      vars<-mf$se^2
-      
-      vwts<-1/vars
-      fixedsumm<-sum(vwts*mf$d)/sum(vwts)
-      Q<-sum( ( ( mf$d - fixedsumm )^2 ) / vars ) 
-      df<-NROW(mf)-1
-      
-      tau2<-max(0, (Q-df)/(sum(vwts)-sum(vwts^2)/sum(vwts)))
-
-   if(is.null(mf$weights)){
-	if (method=="fixed"){
-   		wt<-1/vars
-	} else {
-		wt<-1/(vars+tau2)
-	}
-   } else
-	wt<-mf$weights
-
+  mf$names<-as.character(mf$names)
+  method<-match.arg(method)
+  vars<-mf$se^2
+  
+  vwts<-1/vars
+  fixedsumm<-sum(vwts*mf$d)/sum(vwts)
+  Q<-sum( ( ( mf$d - fixedsumm )^2 ) / vars ) 
+  df<-NROW(mf)-1
+  
+  tau2<-max(0, (Q-df)/(sum(vwts)-sum(vwts^2)/sum(vwts)))
+  
+  if(is.null(mf$weights)){
+    if (method=="fixed"){
+      wt<-1/vars
+    } else {
+      wt<-1/(vars+tau2)
+    }
+  } else
+  wt<-mf$weights
+  
   summ<-sum(wt*mf$d)/sum(wt)
   if (method=="fixed")
 	varsum<-sum(wt*wt*vars)/(sum(wt)^2)
@@ -571,100 +580,104 @@ summary.meta.summaries <- function( object ,conf.level=NULL, ...) {
     wt<-object$weights
     m<-cbind(m, round(wt*length(wt)/sum(wt),1))
     dimnames( m ) <- list( as.character( object$names ),
-                          c( label, "(lower ", paste(100*conf.level,"% upper)",sep=""),"weights")  )
+                          c( label, "(lower ", paste(100*conf.level,"% upper)",
+                                                     sep=""),"weights")  )
     summci<-object$summary + c( -ci.value, 0, ci.value ) *object$se.summary
     if (object$logscale) summci<-exp(summci)
     rval <- list( studies = m, call = object$call, 
-    		  summci = summci,
-    		  het = object$het,tau2=object$tau2,
-                  conf.level=conf.level,logscale=object$logscale,
+                 summci = summci,
+                 het = object$het,tau2=object$tau2,
+                 conf.level=conf.level,logscale=object$logscale,
                  weight.method=object$weight.method,
                  variance.method=object$variance.method
-    	        )
+                 )
     class( rval ) <- "summary.meta.summaries"
     rval
-}
+  }
 
-# Print out the summarised meta.summaries function.
+## Print out the summarised meta.summaries function.
 print.summary.meta.summaries <- function( x, ... ) {
-    if (x$weight.method=="user")
-        cat(paste("Weighted meta-analysis with ",x$variance.method,"-effects standard errors\n",sep=""))
-    else
-        cat(paste(switch(x$variance.method,fixed="Fixed",random="Random"),"-effects meta-analysis\n",sep=""))
-
-    cat( "Call: " )
-    print( x$call )
-    cat( "----------------------------------------------------\n" )
-    print( round( x$studies,2 ) )
-    cat( "----------------------------------------------------\n" )
-    conf.level <- x$conf.level
-    if (x$logscale)
-        cat("Summary exp(effect): ")
-    else
-        cat("Summary effect: ")
-    cat( paste(  round( x$summci[2], 2 ), " ",
-    	        conf.level*100, "% CI ( ", round( x$summci[1],2 ), ",", 
-    	        round( x$summci[3],2 ), " )\n", sep="" 
-    	      ) 
-       )
-    if (x$variance.method=="fixed")
-        cat( paste( "Test for heterogeneity: X^2( ",x$het[2]," ) = ",
-                   round( x$het[1],2 ), " ( p-value ",
-                   round( x$het[3],4 ), " )\n", sep = "" 
-                   ) 
-            )
-    else
-        cat("Estimated heterogeneity variance:",signif(x$tau2,2)," p=",round(x$het[3],3),"\n")
+  if (x$weight.method=="user")
+    cat(paste("Weighted meta-analysis with ",x$variance.method,
+              "-effects standard errors\n",sep=""))
+  else
+    cat(paste(switch(x$variance.method,fixed="Fixed",random="Random"),
+              "-effects meta-analysis\n",sep=""))
+  
+  cat( "Call: " )
+  print( x$call )
+  cat( "----------------------------------------------------\n" )
+  print( round( x$studies,2 ) )
+  cat( "----------------------------------------------------\n" )
+  conf.level <- x$conf.level
+  if (x$logscale)
+    cat("Summary exp(effect): ")
+  else
+    cat("Summary effect: ")
+  cat( paste(  round( x$summci[2], 2 ), " ",
+             conf.level*100, "% CI ( ", round( x$summci[1],2 ), ",", 
+             round( x$summci[3],2 ), " )\n", sep="" 
+             ) 
+      )
+  if (x$variance.method=="fixed")
+    cat( paste( "Test for heterogeneity: X^2( ",x$het[2]," ) = ",
+               round( x$het[1],2 ), " ( p-value ",
+               round( x$het[3],4 ), " )\n", sep = "" 
+               ) 
+        )
+  else
+    cat("Estimated heterogeneity variance:",signif(x$tau2,2)," p=",round(x$het[3],3),"\n")
 }
 
 print.meta.summaries<-function(x, ...){
-   conf.level<-x$conf.level
-   ci.value<- -qnorm((1-conf.level)/2)
-   if (x$variance.method=="fixed")
-	cat("Fixed-effects meta-analysis")
-   else	
-	cat("Random-effects meta-analysis")
-   if(x$weight.method!="user")
-	cat("\n")
-   else
-	cat(" with user-supplied weights\n")
-   cat("Call: ")
-   print(x$call)
-   ci<-x$summary+c(-ci.value,0,ci.value)*x$se.summary
-   if (x$logscale) {
-       ci<-exp(ci)
-       label<-"exp(summary effect)="
-   }
-   else
-       label<-"Summary effect="
-   cat(paste(label,signif(ci[2],3), "   ",
-	conf.level*100,"% CI (",signif(ci[1],3),", ",signif(ci[3],3),
+  conf.level<-x$conf.level
+  ci.value<- -qnorm((1-conf.level)/2)
+  if (x$variance.method=="fixed")
+    cat("Fixed-effects meta-analysis")
+  else	
+    cat("Random-effects meta-analysis")
+  if(x$weight.method!="user")
+    cat("\n")
+  else
+    cat(" with user-supplied weights\n")
+  cat("Call: ")
+  print(x$call)
+  ci<-x$summary+c(-ci.value,0,ci.value)*x$se.summary
+  if (x$logscale) {
+    ci<-exp(ci)
+    label<-"exp(summary effect)="
+  }
+  else
+    label<-"Summary effect="
+  cat(paste(label,signif(ci[2],3), "   ",
+            conf.level*100,"% CI (",signif(ci[1],3),", ",signif(ci[3],3),
 	")\n",sep=""))
-   cat("Estimated heterogeneity variance:",signif(x$tau2,2)," p=",round(x$het[3],3),"\n")
+  cat("Estimated heterogeneity variance:",signif(x$tau2,2)," p=",round(x$het[3],3),"\n")
 }
 
 plot.meta.summaries<-function(x,summary=TRUE,summlabel="Summary",
-	conf.level=NULL,colors=meta.colors(),xlab=NULL,logscale=NULL,... )
+                              conf.level=NULL,colors=meta.colors(),
+                              xlab=NULL,logscale=NULL,... )
 {
-   if (is.null(conf.level))
-        conf.level <- x$conf.level
-   if (conf.level>1 & conf.level<100)
-        conf.level<-conf.level/100
-   if(is.null(logscale)) logscale<-x$logscale
-   if (is.null(xlab)){
-       if (logscale) xlab<-"exp(Effect)" else xlab<-"Effect"
-   }
-   if ( summary )
-        metaplot( x$effects, x$stderrs, conf.level = conf.level,
-                 labels = x$names, summn = x$summary,
-            	  sumse = x$se.summary, sumnn = sum(x$weights),
-            	  summlabel = summlabel, logeffect = logscale,
-		colors=colors,nn=x$weights,xlab,... )
-    else 
-        metaplot( x$effects, x$stderrs, labels = x$names,
-        	  logeffect = logscale,colors=colors,
-		nn=sum(x$weights),conf.level=conf.level,xlab,... )
-
+  if (is.null(conf.level))
+    conf.level <- x$conf.level
+  if (conf.level>1 & conf.level<100)
+    conf.level<-conf.level/100
+  if(is.null(logscale)) logscale<-x$logscale
+  if (is.null(xlab)){
+    if (logscale) xlab<-"exp(Effect)" else xlab<-"Effect"
+  }
+  if ( summary )
+    metaplot( x$effects, x$stderrs, conf.level = conf.level,
+             labels = x$names, summn = x$summary,
+             sumse = x$se.summary, sumnn = sum(x$weights),
+             summlabel = summlabel, logeffect = logscale,
+             colors=colors,nn=x$weights,xlab,... )
+  else 
+    metaplot( x$effects, x$stderrs, labels = x$names,
+             logeffect = logscale,colors=colors,
+             nn=sum(x$weights),conf.level=conf.level,xlab,... )
+  
 }
 
 

@@ -1,3 +1,10 @@
+2.10 meta.MH was returning the trial-specific odds-ratio standard
+     errors, not relative risk standard errors.
+
+2.9  Allow factors as plot labels.
+
+2.8  Coerce data to double precision to avoid integer overflows.
+
 2.7  add more options to meta.colors.  
      don't draw the zero line over the labels.
 
