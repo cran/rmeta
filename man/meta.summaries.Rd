@@ -14,8 +14,8 @@
 meta.summaries(d, se, method=c("fixed", "random"), weights=NULL,
                logscale=FALSE, names=NULL, data=NULL,
                conf.level=0.95, subset=NULL,na.action=na.fail)
-summary.meta.summaries(object,conf.level=NULL,\dots)
-plot.meta.summaries(x,summary=TRUE,summlabel="Summary",
+\method{summary}{meta.summaries}(object,conf.level=NULL,\dots)
+\method{plot}{meta.summaries}(x,summary=TRUE,summlabel="Summary",
                     conf.level=NULL,colors=meta.colors(),
                     xlab=NULL,logscale=NULL,\dots)
 }

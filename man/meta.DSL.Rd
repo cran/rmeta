@@ -3,8 +3,8 @@
 \usage{
 meta.DSL(ntrt, nctrl, ptrt, pctrl, conf.level=0.95,
          names=NULL, data=NULL, subset=NULL, na.action=na.fail,statistic="OR")
-summary.meta.DSL(object, conf.level=NULL, \dots)
-plot.meta.DSL(x, summary=TRUE, summlabel="Summary",
+\method{summary}{meta.DSL}(object, conf.level=NULL, \dots)
+\method{plot}{meta.DSL}(x, summary=TRUE, summlabel="Summary",
              conf.level=NULL, colors=meta.colors(), xlab=NULL,\dots)
 }
 \alias{meta.DSL}

@@ -3,8 +3,8 @@
 \usage{
 meta.MH(ntrt, nctrl, ptrt, pctrl, conf.level=0.95,
         names=NULL, data=NULL, subset=NULL, na.action = na.fail,statistic="OR")
-summary.meta.MH(object, conf.level=NULL, \dots)
-plot.meta.MH(x, summary=TRUE, summlabel="Summary",
+\method{summary}{meta.MH}(object, conf.level=NULL, \dots)
+\method{plot}{meta.MH}(x, summary=TRUE, summlabel="Summary",
              conf.level=NULL, colors=meta.colors(),xlab=NULL, \dots)
 }
 \alias{meta.MH}

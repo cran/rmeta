@@ -1,3 +1,5 @@
+2.11 codoc changes.
+
 2.10 meta.MH was returning the trial-specific odds-ratio standard
      errors, not relative risk standard errors.
 

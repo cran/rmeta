@@ -13,7 +13,7 @@ metaplot(mn, se, nn=NULL, labels=NULL, conf.level=0.95,
          xlab="Odds ratio", ylab="Study Reference",xlim=NULL,
          summn=NULL, sumse=NULL, sumnn=NULL, summlabel="Summary",
          logeffect=FALSE, lwd=2, boxsize=1,
-         zero=if (logeffect) 1 else 0, colors=meta.colors(),
+         zero=as.numeric(logeffect), colors=meta.colors(),
          xaxt="s", logticks=TRUE,  ...)
 }
 %- maybe also `usage' for other objects documented here.

@@ -1,5 +1,5 @@
 Package: rmeta
-Version: 2.10
+Version: 2.11
 Author: Thomas Lumley <tlumley@u.washington.edu>
 Maintainer: Thomas Lumley <tlumley@u.washington.edu>
 Description: Functions for simple fixed and random effects meta-analysis
@@ -8,4 +8,4 @@ Description: Functions for simple fixed and random effects meta-analysis
     association and heterogeneity
 Title: Meta-analysis
 License: GPL version 2
-
+Packaged: Wed Apr 21 16:17:23 2004; thomas
