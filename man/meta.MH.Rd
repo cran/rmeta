@@ -8,6 +8,8 @@ plot.meta.MH(object,summary=T,summlabel="Summary",\dots,conf.level=NULL,colors=m
 }
 \alias{meta.MH}
 \alias{summary.meta.MH}
+\alias{print.meta.MH}
+\alias{print.summary.meta.MH}
 \alias{plot.meta.MH}
 %- Also NEED an `\alias' for EACH other function documented here.
 \arguments{

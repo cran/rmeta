@@ -9,6 +9,8 @@ colors=meta.colors())
 }
 \alias{meta.DSL}
 \alias{summary.meta.DSL}
+\alias{print.meta.DSL}
+\alias{print.summary.meta.DSL}
 \alias{plot.meta.DSL}
 %- Also NEED an `\alias' for EACH other function documented here.
 \arguments{

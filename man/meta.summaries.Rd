@@ -1,7 +1,9 @@
 \name{meta.summaries}
 \alias{meta.summaries}
+\alias{print.meta.summaries}
 \alias{plot.meta.summaries}
 \alias{summary.meta.summaries}
+\alias{print.summary.meta.summaries}
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{Meta-analysis based on effect estimates}
 \description{

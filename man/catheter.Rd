@@ -2,6 +2,9 @@
 \title{Meta-analysis of antibacterial catheter coating }
 \usage{data(catheter)}
 \alias{catheter}
+\description{Data on the effectiveness of silver sulfadiazine coating on
+  venous catheters for preventing bacterial colonisation of the catheter
+  and bloodstream infection}
 \source{Veenstra D et al (1998) "Efficacy of Antiseptic Impregnated
 Central Venous Catheters in Preventing Nosocomial Infections: A
 Meta-analysis" JAMA 281:261-267}

@@ -1,5 +1,9 @@
 \name{funnelplot}
 \alias{funnelplot}
+\alias{funnelplot.meta.MH}
+\alias{funnelplot.meta.DSL}
+\alias{funnelplot.meta.summaries}
+\alias{funnelplot.default}
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{Funnel plot for publication bias}
 \description{

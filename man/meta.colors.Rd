@@ -27,6 +27,12 @@ meta.colors(all.elements, box="black", lines="gray", summary="black", zero="ligh
 \seealso{\code{\link{plot.meta.MH}},\code{\link{plot.meta.DSL}},\code{\link{plot.meta.summaries}},\code{\link{funnelplot}},\code{\link{metaplot}}}
 
 \examples{
-
+data(cochrane)
+steroid<-meta.MH(n.trt,n.ctrl,ev.trt,ev.ctrl,names=name,data=cochrane)
+plot(steroid,col=meta.colors("RoyalBlue"))
+data(catheter)
+e<-meta.DSL(n.trt,n.ctrl,inf.trt,inf.ctrl,data=catheter,names=Name,subset=c(13,6,3,12,4,11,1,14,8,10,2))
+# Angry fruit salad color scheme
+plot(e,colors=meta.colors(summary="green",lines="purple",box="orange"))
 }
-\keyword{hplot }%-- one or more ...
+\keyword{hplot}%-- one or more ...
