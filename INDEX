@@ -4,7 +4,6 @@ cochrane                Data: Cochrane Collaboration logo
 meta.DSL                Random effects (DerSimonian-Laird) meta-analysis
 meta.MH                 Fixed effects (Mantel-Haenszel) meta-analysis
 meta.summaries          Meta-analysis based on effect estimates
-meta.score		Fixed effects (likelihood score) meta-analysis
 
 metaplot                Confidence interval (forest) plot
 funnelplot              Funnel plot for publication bias

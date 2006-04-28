@@ -47,6 +47,8 @@ metaplot(mn, se, nn=NULL, labels=NULL, conf.level=0.95,
 }
 
 \seealso{
+  \code{\link{forestplot}} for more flexible plots
+  
   \code{\link{plot.meta.DSL}},
   \code{\link{plot.meta.MH}},
   \code{\link{plot.meta.summaries}}

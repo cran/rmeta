@@ -1,6 +1,6 @@
-2.12 Added meta.score for score-based confidence intervals for RRs
+2.13 Add forestplot() for more complicated grid-based plots
 
-     meta.MH for relative risks was wrong when exposed and unexposed 
+2.12 meta.MH for relative risks was wrong when exposed and unexposed 
       groups were very different in size
 
 2.11 codoc changes.
