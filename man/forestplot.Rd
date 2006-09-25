@@ -6,7 +6,9 @@
 Draw a forest plot together with a table of text.
 }
 \usage{
-forestplot(labeltext, mean, lower, upper, align = NULL, is.summary = FALSE, clip = c(-Inf, Inf), xlab = "", zero = 0, graphwidth = unit(2, "inches"), col = meta.colors(), xlog = FALSE, ...)
+forestplot(labeltext, mean, lower, upper, align = NULL, is.summary =
+FALSE, clip = c(-Inf, Inf), xlab = "", zero = 0, graphwidth = unit(2,
+"inches"), col = meta.colors(), xlog = FALSE, xticks=NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -27,6 +29,8 @@ forestplot(labeltext, mean, lower, upper, align = NULL, is.summary = FALSE, clip
   \item{graphwidth}{Width of confidence interval graph }
   \item{col}{See \code{\link{meta.colors}}}
   \item{xlog}{If \code{TRUE}, x-axis tick marks are exponentiated}
+  \item{xticks}{Optional user-specified x-axis tick marks. Specify \code{NULL}
+    to use the defaults, \code{numeric(0)} to omit the x-axis.}
   \item{\dots}{Not used.}
 }
 \details{

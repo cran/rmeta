@@ -1,7 +1,8 @@
 
 
 forestplot<-function(labeltext,mean,lower,upper,align=NULL, is.summary=FALSE, clip=c(-Inf,Inf), 
-                     xlab="", zero= 0,graphwidth=unit(2,"inches"),col=meta.colors(),xlog=FALSE,...){
+                     xlab="", zero= 0,graphwidth=unit(2,"inches"),col=meta.colors(),xlog=FALSE,
+                     xticks=NULL, ...){
 
   require("grid") || stop("`grid' package not found")
   require("rmeta") || stop("`rmeta' package not found")
@@ -122,15 +123,27 @@ forestplot<-function(labeltext,mean,lower,upper,align=NULL, is.summary=FALSE, cl
   pushViewport(viewport(layout.pos.col=2*nc+1, xscale=xrange))
   grid.lines(x=unit(zero, "native"), y=0:1,gp=gpar(col=col$zero))
   if (xlog){
-    ticks<-pretty(exp(xrange))
-    ticks<-ticks[ticks>0]
-    if (min(lower,na.rm=TRUE)<clip[1]) ticks<-c(exp(clip[1]),ticks)
-    if (max(upper,na.rm=TRUE)>clip[2]) ticks<-c(ticks,exp(clip[2]))
-    xax<-xaxisGrob(gp=gpar(cex=0.6,col=col$axes),at=log(ticks),name="xax")
-    xax1<-editGrob(xax, gPath("labels"), label=format(ticks,digits=2))
-    grid.draw(xax1)
-  } else
-    grid.xaxis(gp=gpar(cex=0.6,col=col$axes))
+      if(is.null(xticks)){
+          ticks<-pretty(exp(xrange))
+          ticks<-ticks[ticks>0]
+      } else{
+          ticks<-xticks
+      }
+      if (length(ticks)){ 
+          if (min(lower,na.rm=TRUE)<clip[1]) ticks<-c(exp(clip[1]),ticks)
+          if (max(upper,na.rm=TRUE)>clip[2]) ticks<-c(ticks,exp(clip[2]))
+          xax<-xaxisGrob(gp=gpar(cex=0.6,col=col$axes),at=log(ticks),name="xax")
+          xax1<-editGrob(xax, gPath("labels"), label=format(ticks,digits=2))
+          grid.draw(xax1)
+      }
+  } else{
+      if (is.null(xticks)){
+          grid.xaxis(gp=gpar(cex=0.6,col=col$axes))
+      } else if(length(xticks)) {
+          grid.xaxis(at=xticks, gp=gpar(cex=0.6,col=col$axes))
+      }
+      
+  }
   grid.text(xlab, y=unit(-2, "lines"),gp=gpar(col=col$axes))
   popViewport()
   for (i in 1:nr) {
