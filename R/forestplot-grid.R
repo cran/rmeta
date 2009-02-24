@@ -2,7 +2,7 @@
 
 forestplot<-function(labeltext,mean,lower,upper,align=NULL, is.summary=FALSE, clip=c(-Inf,Inf), 
                      xlab="", zero= 0,graphwidth=unit(2,"inches"),col=meta.colors(),xlog=FALSE,
-                     xticks=NULL, ...){
+                     xticks=NULL, boxsize=NULL, ...){
 
   require("grid") || stop("`grid' package not found")
   require("rmeta") || stop("`rmeta' package not found")
@@ -109,6 +109,8 @@ forestplot<-function(labeltext,mean,lower,upper,align=NULL, is.summary=FALSE, cl
   info<-1/cwidth
   info<-info/max(info[!is.summary], na.rm=TRUE)
   info[is.summary]<-1
+
+  if (!is.null(boxsize)) info<-rep(boxsize,length=length(info))
   
   for(j in 1:nc){
     for(i in 1:nr){

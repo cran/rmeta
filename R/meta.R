@@ -209,11 +209,10 @@ meta.MH <- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
     		      ( Ti * Ti * ( Ti - 1 ) 
     		    ) 
     	       )
-    ##stata manual pp486ff
 
     logMHRR<-log(sum(G)/sum(H))
-    varMHRR<-(   sum( ((A+B)*(A+C)*(A+D)-A*B*Ti)/Ti^2)/ (sum(A*(A+C)/Ti)*sum(B*(B+D)/Ti)))
-   
+    varMHRR <- (sum(((A + B) * (A + C) * (B + D) - A * B *Ti)/Ti^2)/(sum(A * (B + D)/Ti) * sum(B * (A + C)/Ti)))
+
     ok <- is.finite( logORs )
     okRR <- is.finite(logRRs) 
     heterog <- sum( ( ( logORs[ok] - logMH ) ^ 2 ) / varORs[ok] )

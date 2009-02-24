@@ -14,7 +14,7 @@
 }
 \usage{
 funnelplot(x,\dots)
-funnelplot.default(x, se, size=1/se, summ=NULL,
+\method{funnelplot}{default}(x, se, size=1/se, summ=NULL,
         xlab="Effect", ylab="Size", colors=meta.colors(),
         conf.level=0.95, plot.conf=FALSE,
         zero=NULL, mirror=FALSE, \dots)

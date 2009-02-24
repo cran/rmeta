@@ -1,3 +1,7 @@
+2.15 fix to MH relative risk variance, from Ted Lystig
+
+     forestplot() now allows the box size to be controlled explicitly
+
 2.14 xticks= argument to forestplot()
      update format of saved data for R 2.4.0
 

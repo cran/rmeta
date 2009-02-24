@@ -8,7 +8,7 @@ Draw a forest plot together with a table of text.
 \usage{
 forestplot(labeltext, mean, lower, upper, align = NULL, is.summary =
 FALSE, clip = c(-Inf, Inf), xlab = "", zero = 0, graphwidth = unit(2,
-"inches"), col = meta.colors(), xlog = FALSE, xticks=NULL, ...)
+"inches"), col = meta.colors(), xlog = FALSE, xticks=NULL, boxsize=NULL,...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -31,6 +31,7 @@ FALSE, clip = c(-Inf, Inf), xlab = "", zero = 0, graphwidth = unit(2,
   \item{xlog}{If \code{TRUE}, x-axis tick marks are exponentiated}
   \item{xticks}{Optional user-specified x-axis tick marks. Specify \code{NULL}
     to use the defaults, \code{numeric(0)} to omit the x-axis.}
+  \item{boxsize}{Override the default box size based on precision}
   \item{\dots}{Not used.}
 }
 \details{
@@ -62,6 +63,10 @@ l<- m-c(NA,NA,steroid$selogOR,NA,steroid$selogMH)*2
 u<- m+c(NA,NA,steroid$selogOR,NA,steroid$selogMH)*2
 forestplot(tabletext,m,l,u,zero=0,is.summary=c(TRUE,TRUE,rep(FALSE,8),TRUE),
    clip=c(log(0.1),log(2.5)), xlog=TRUE,
+   col=meta.colors(box="royalblue",line="darkblue", summary="royalblue"))
+
+forestplot(tabletext,m,l,u,zero=0,is.summary=c(TRUE,TRUE,rep(FALSE,8),TRUE),
+   clip=c(log(0.1),log(2.5)), xlog=TRUE, boxsize=0.75,
    col=meta.colors(box="royalblue",line="darkblue", summary="royalblue"))
 
 }
