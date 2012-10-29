@@ -212,7 +212,7 @@ meta.MH <- function ( ntrt, nctrl, ptrt, pctrl, conf.level = .95,
 
     logMHRR<-log(sum(G)/sum(H))
     varMHRR <- (sum(((A + B) * (A + C) * (B + D) - A * B *Ti)/Ti^2)/(sum(A * (B + D)/Ti) * sum(B * (A + C)/Ti)))
-
+    
     ok <- is.finite( logORs )
     okRR <- is.finite(logRRs) 
     heterog <- sum( ( ( logORs[ok] - logMH ) ^ 2 ) / varORs[ok] )
@@ -518,7 +518,7 @@ meta.summaries<-function(d,se,method=c("fixed","random"),
     mf <- na.action( mf )
   
     if (is.null(mf$names)){
-	if (is.null(mf$d))
+	if (is.null(mf$d) || is.null(names(mf$d)))
 	   mf$names<-seq(along=mf$d)
 	else
 	  mf$names<-names(mf$d)
