@@ -1,3 +1,5 @@
+3.0  Changes in R broke the package
+
 2.16 fix to cummeta.summaries for NULL names (from BDR)
 
 2.15 fix to MH relative risk variance, from Ted Lystig

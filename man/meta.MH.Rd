@@ -52,7 +52,6 @@ error.
   An object of class \code{meta.MH} with \code{print}, \code{plot}, \code{funnelplot} and
   \code{summary} methods.
 }
-\references{}
 \author{Thomas Lumley}
 \note{ There are at least two other ways to do a fixed effects
   meta-analysis of binary data. Peto's method is a computationally

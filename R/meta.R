@@ -155,7 +155,7 @@ plot.meta.cum <- function( x,  conf.level=NULL,colors=meta.colors(),xlab=NULL,
     title(main=main)
     if (summary.line) abline(v=exp(stats[m]),lty=3,col=colors$summary,lwd=lwd)
     if (summary.conf) {
-        z<-qnorm((1-conf.level)/2,s=ses[m])
+        z<-qnorm((1-conf.level)/2,sd=ses[m])
         abline(v=exp(stats[m]+z),lty=3,col=colors$line,lwd=lwd)
         abline(v=exp(stats[m]-z),lty=3,col=colors$line,lwd=lwd)
     }

@@ -157,7 +157,7 @@ funnelplot.default<-function(x,se,size=1/se,summ=NULL,xlab="Effect",ylab="Size",
 	stop("Can't do a mirror plot without a summary value")
 
    if (plot.conf){
-	ci<--qnorm((1-conf.level)/2)
+	ci<- -qnorm((1-conf.level)/2)
 	xlim<-range(finite(c(zero,x-ci*se,x+ci*se)))
 	if (mirror)
 	  xlim<-range(finite(c(xlim,2*summ-x-ci*se,2*summ-x+ci*se)))

@@ -1,10 +1,27 @@
-# Default NAMESPACE created by R
-# Remove the previous line if you edit this file
-
 # Export all names
-exportPattern(".")
+export(meta.DSL, meta.MH, funnelplot, cummeta,cummeta.summaries,meta.summaries,meta.colors, forestplot,metaplot)
+S3method(plot, meta.DSL)
+S3method(plot, meta.MH)
+S3method(plot, meta.cum)
+S3method(funnelplot, meta.summaries)
+S3method(funnelplot, meta.DSL)
+S3method(funnelplot, meta.MH)
+S3method(funnelplot, default)
+S3method(print, meta.cum)
+S3method(print, meta.MH)
+S3method(print, meta.DSL)
+S3method(print, meta.summaries)
+S3method(summary, meta.MH)
+S3method(summary, meta.DSL)
+S3method(summary, meta.cum)
+S3method(summary, meta.summaries)
+S3method(print, summary.meta.DSL)
+S3method(print, summary.meta.MH)
+S3method(print, summary.meta.cum)
+S3method(print, summary.meta.summaries)
+
 
 # Import all packages listed as Imports or Depends
 import(
-  grid
+  grid, graphics, stats
 )

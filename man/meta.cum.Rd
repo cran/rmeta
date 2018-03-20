@@ -13,11 +13,19 @@ time.  The \code{i}th line in the cumulative meta-analysis plot is the
 summary produced by a meta-analysis of the first \code{i} trials.
 }
 \usage{
-cummeta(ntrt, nctrl, ptrt, pctrl, conf.level = 0.95, names = NULL, data=
-NULL,  subset = NULL, na.action = na.fail, method = c("meta.MH", "meta.DSL"), statistic = "OR")
-cummeta.summaries(effects,stderrs, conf.level = 0.95, names = NULL,weights=NULL, data= NULL, subset = NULL, na.action = get(getOption("na.action")), method = c("fixed", "random"), logscale=TRUE)
-\method{plot}{meta.cum}(x, conf.level = NULL, colors = meta.colors(), xlab = NULL, 
-    summary.line = TRUE, summary.conf = FALSE, main="Cumulative meta-analysis", lwd=1, ...)
+cummeta(ntrt, nctrl, ptrt, pctrl, conf.level = 0.95,
+   names = NULL, data= NULL, subset = NULL, 
+   na.action = na.fail,
+    method = c("meta.MH", "meta.DSL"),
+   statistic = "OR")
+cummeta.summaries(effects,stderrs, conf.level = 0.95,
+   names = NULL,weights=NULL, data= NULL,
+   subset = NULL, na.action = get(getOption("na.action")),
+   method = c("fixed", "random"), logscale=TRUE)
+\method{plot}{meta.cum}(x, conf.level = NULL,
+    colors = meta.colors(), xlab = NULL, 
+    summary.line = TRUE, summary.conf = FALSE,
+     main="Cumulative meta-analysis", lwd=1, ...)
 \method{summary}{meta.cum}(object ,conf.level=NULL,...)
 }
 %- maybe also `usage' for other objects documented here.
@@ -55,7 +63,8 @@ cummeta.summaries(effects,stderrs, conf.level = 0.95, names = NULL,weights=NULL,
 \seealso{\code{\link{meta.MH}},\code{\link{meta.DSL}}}
 \examples{
 data(cochrane)
-steroid<-cummeta(n.trt,n.ctrl,ev.trt,ev.ctrl,names=name,data=cochrane,statistic="RR",method="meta.MH")
+steroid<-cummeta(n.trt,n.ctrl,ev.trt,ev.ctrl,names=name,data=cochrane,
+  statistic="RR",method="meta.MH")
 plot(steroid)
 summary(steroid)
 data(catheter)

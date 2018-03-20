@@ -4,9 +4,6 @@ forestplot<-function(labeltext,mean,lower,upper,align=NULL, is.summary=FALSE, cl
                      xlab="", zero= 0,graphwidth=unit(2,"inches"),col=meta.colors(),xlog=FALSE,
                      xticks=NULL, boxsize=NULL, ...){
 
-  require("grid") || stop("`grid' package not found")
-  require("rmeta") || stop("`rmeta' package not found")
-
   ## Function to draw a non-summary rect-plus-CI
   drawNormalCI <- function(LL, OR, UL, size) {
     size=0.75*size
